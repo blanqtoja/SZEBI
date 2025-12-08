@@ -1,13 +1,14 @@
-from simulation.logic.base.devices.energysource import EnergySource
-
+from devices.energysource import EnergySource
+from base.weather import Weather
+from base.environment import Environment
 
 class WindTurbine(EnergySource):
-    def __init__(self, name: str, rated_power_watt: float, rated_speed: float = 12.0):
-        super().__init__(name)
+    def __init__(self, name: str, env: Environment, rated_power_watt: float, rated_speed: float = 12.0):
+        super().__init__(name, env)
         self.rated_power = rated_power_watt
         self.rated_speed = rated_speed
 
-    def calculate_production(self, weather, millis_passed) -> float:
+    def calculate_production(self, weather: Weather, millis_passed: int) -> float:
         if not self.is_active:
             return 0.0
         wind = weather.get_wind_speed()

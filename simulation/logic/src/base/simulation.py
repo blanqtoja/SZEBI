@@ -1,8 +1,8 @@
-import datetime
 import threading
 import time
 from datetime import datetime, timedelta
-from simulation.logic.base.environment import Environment
+
+from environment import Environment
 
 # class RandomEvent:
 #     def __init__(self, chance: float, interval: int):
@@ -18,34 +18,36 @@ from simulation.logic.base.environment import Environment
 
 class Simulation:
     def __init__(self):
-        self.environments = []
-        self.base_millis_per_tick = 15 * 60 * 1000
-        self.simulated_millis_per_tick = self.base_millis_per_tick
-        self.current_tick = 0
-        self.STARTING_DATETIME = datetime.now()
-        self.running = False
+        self.environments: list[Environment] = []
+        
+        self.base_millis_per_tick: int = 15 * 60 * 1000
+        self.simulated_millis_per_tick: int = self.base_millis_per_tick
+        self.current_tick: int = 0
+        self.STARTING_DATETIME: datetime = datetime.now()
+        
+        self.running: bool = False
 
-    """it's done this way on purpose: it makes it a bit harder to use,
-    but makes it easier to catch unintended behaviour"""
+    # Running logic
+
     def start(self) -> None:
         if self.running:
-            raise ValueError('simulation is already running')
+            raise RuntimeError('simulation is already running')
         self.running = True
         self._thread = threading.Thread(target=self._run_loop, daemon=True)
         self._thread.start()
 
-    def stop(self):
+    def stop(self) -> None:
         if not self.running:
-            raise ValueError('simulation is already not running')
+            raise RuntimeError('simulation is already not running')
         self.running = False
         if hasattr(self, "_thread"):
             self._thread.join(timeout=1)
 
-    def _run_loop(self):
+    def _run_loop(self) -> None:
         interval = self.simulated_millis_per_tick / 1000.0
         next_tick = time.perf_counter()
 
-        while self.get_running():
+        while self.is_running():
             start = time.perf_counter()
             self.tick()
             end = time.perf_counter()
@@ -65,15 +67,16 @@ class Simulation:
                     f"Tick processing overran and loop is running {wait_time:.3f}s slow"
                 )
 
-    def tick(self):
+    def tick(self) -> None:
         millis = self.base_millis_per_tick
         for env in self.environments:
-            env.weather.update(millis)
             env.update(millis)
         self.current_tick += 1
 
-    def get_running(self) -> bool:
+    def is_running(self) -> bool:
         return self.running
+    
+    # Time simulation
 
     def get_current_date(self) -> datetime:
         time_passed_since_start = self.current_tick * self.base_millis_per_tick
@@ -97,8 +100,10 @@ class Simulation:
     def get_time_resolution(self) -> int:
         return self.base_millis_per_tick
 
+    # Env
+
     def get_environments(self) -> list[Environment]:
         return self.environments
 
-    def add_environment(self, env: Environment) :
-        self.environments.append(env)
+    def create_new_environment(self, name: str) :
+        self.environments.append(Environment(name, self))

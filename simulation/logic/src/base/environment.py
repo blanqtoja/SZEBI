@@ -1,30 +1,41 @@
+from weather import Weather
+from simulation import Simulation
 
-""""
-WAZNE  ROBIL TO CZAT NIE MAM NA RAZIE NA TO POMYSLU ALE POKI CO
-BEDZIE TO LACZNIK ZEBY MODUL STEROWANIA MOGL ZMIENIAC NASTAWY TEM ITP
+from util.utils import validate_name
 
+from uuid import UUID, uuid4
 
-"""
+import weakref
 
 
 class Environment:
-    def __init__(self, weather, initial_temp: float = 21.0, insulation: float = 0.85):
-
-        self.weather = weather
+    weather: Weather
+    
+    uuid: UUID = uuid4()
+    name: str
+    
+    
+    def __init__(self, name: str, simulation: Simulation, initial_temp: float = 21.0, insulation: float = 0.85, ):
+        self._simulation = weakref.ref(simulation)    
+        self.weather = Weather(simulation)
+        
+        self.name = name
+        
         self.temperature = initial_temp
         self.insulation = insulation
 
         # Moc dostarczona przez urządzenia HVAC w danym ticku
         self.heating_power = 0.0   # W
         self.cooling_power = 0.0   # W
-
-    def apply_heating(self, watt: float):
-        self.heating_power += watt
-
-    def apply_cooling(self, watt: float):
-        self.cooling_power += watt
+        
+    def sim(self) -> Simulation:
+        s = self._simulation() 
+        if s is None:
+            raise RuntimeError('Environment exists outside of Simulation context')
+        return s
 
     def update(self, millis_passed: int):
+        self.weather.update(millis_passed)
         outside_temp = self.weather.get_temperature()
         inside_temp = self.temperature
 
@@ -36,24 +47,22 @@ class Environment:
         # 2. Ogrzewanie / chłodzenie
         hours = millis_passed / (1000 * 3600)
 
-        # Ogrzewanie — podnosi temperaturę
+        # Ogrzewanie - podnosi temperaturę
         self.temperature += (self.heating_power / 1000.0) * hours * 1.8
 
-        # Chłodzenie — obniża temperaturę
+        # Chłodzenie - obniża temperaturę
         self.temperature -= (self.cooling_power / 1000.0) * hours * 2.0
 
         # Reset mocy po aktualizacji
         self.heating_power = 0.0
         self.cooling_power = 0.0
 
-    def get_temperature(self):
-        return self.temperature
-
-    def get_insulation(self):
-        return self.insulation
-
     def get_heating_power(self):
         return self.heating_power
 
     def get_cooling_power(self):
         return self.cooling_power
+    
+    def set_name(self, name: str) -> None:
+        validate_name(name)
+        self.name = name

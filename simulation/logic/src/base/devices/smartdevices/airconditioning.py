@@ -1,20 +1,20 @@
 from ..smartdevice import SmartDevice
-
+from base.environment import Environment
 
 class AirConditioning(SmartDevice):
-    def __init__(self, name: str, power_usage_watt: float, target_temp: float = 24):
-        super().__init__(name, power_usage_watt)
+    def __init__(self, name: str, env: Environment, power_usage_watt: float, target_temp: float = 24):
+        super().__init__(name, env, power_usage_watt)
         self.target_temp = target_temp
         self.is_cooling = False
 
-    def update(self, millis_passed: int, environment=None, **kwargs):
-        if not self.is_active or environment is None:
+    def update(self, millis_passed: int):
+        if not self.is_active:
             self.is_cooling = False
             return
 
-        if environment.get_temperature() > self.target_temp:
+        if self.env().weather.get_temperature() > self.target_temp:
             self.is_cooling = True
-            environment.apply_cooling(self.power_usage)
+            self.env().weather.apply_cooling(self.power_usage)
         else:
             self.is_cooling = False
 
