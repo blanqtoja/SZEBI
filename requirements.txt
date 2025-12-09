@@ -3,4 +3,4 @@ psycopg2-binary>=2.9
 python-decouple>=3.8
 gunicorn>=20.1
 regex
-paho_mqtt
+paho-mqtt==1.6.1

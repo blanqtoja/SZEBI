@@ -1,9 +1,10 @@
-from devices.energysource import EnergySource
-from base.weather import Weather
-from base.environment import Environment
+from __future__ import annotations
+from simulation.logic.src.base.devices.energysource import EnergySource
+from simulation.logic.src.base.weather import Weather
+
 
 class WindTurbine(EnergySource):
-    def __init__(self, name: str, env: Environment, rated_power_watt: float, rated_speed: float = 12.0):
+    def __init__(self, name: str, env, rated_power_watt: float, rated_speed: float = 12.0):
         super().__init__(name, env)
         self.rated_power = rated_power_watt
         self.rated_speed = rated_speed
