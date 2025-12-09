@@ -44,6 +44,8 @@ INSTALLED_APPS = [
     # 'forecasting.apps.ForecastingConfig',
     # 'optimization.apps.OptimizationConfig',
     # 'alarms.apps.AlarmsConfig',
+    'rest_framework',  # To naprawi błąd TemplateDoesNotExist
+    'optimization',    # To sprawi, że Twój moduł będzie w pełni widoczny
 ]
 
 MIDDLEWARE = [

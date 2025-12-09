@@ -74,10 +74,10 @@ class OptimizationController:
         for device in devices:
             print(f"\n--- Przetwarzanie: {device.name} ---")
             
-            # [cite_start]A. Pobierz preferencje dla tego konkretnego urządzenia [cite: 114]
+            # [cite_start]A. Pobierz preferencje dla tego konkretnego urządzenia 
             preference = self.pref_repo.get_preference_for_device(device.id)
             
-            # [cite_start]B. Uruchom Czysty Algorytm (calculateOptimalSettings [cite: 247])
+            # [cite_start]B. Uruchom Czysty Algorytm (calculateOptimalSettings )
             settings = calculate_optimal_settings(
                 device=device,
                 forecast=forecast,
@@ -87,7 +87,7 @@ class OptimizationController:
             
             print(f"   [WYNIK] Wyznaczone nastawy: {settings}")
 
-            # [cite_start]3. WYSYŁANIE ROZKAZÓW (Do symulacji [cite: 169])
+            # [cite_start]3. WYSYŁANIE ROZKAZÓW (Do symulacji )
             self.simulation_client.publish_command(device.id, settings)
             processed_count += 1
 

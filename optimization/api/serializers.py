@@ -2,7 +2,6 @@ from rest_framework import serializers
 from simulation.models import Device
 from optimization.models import OptimizationRule, UserPreference
 
-# --- TO JEST TA BRAKUJĄCA KLASA ---
 class ExternalAlarmSerializer(serializers.Serializer):
     """
     Serializer pasujący do formatu danych z modułu Alarmów.
@@ -15,7 +14,6 @@ class ExternalAlarmSerializer(serializers.Serializer):
     rule_name = serializers.CharField(required=False, allow_null=True)
     rule_metric = serializers.CharField(required=False, allow_null=True)
 
-# --- Reszta serializerów (bez zmian) ---
 
 class DeviceSerializer(serializers.ModelSerializer):
     class Meta:
