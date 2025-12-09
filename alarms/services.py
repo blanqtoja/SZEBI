@@ -1,6 +1,7 @@
 from django.core.mail import send_mail
 from django.conf import settings
 import logging
+import requests
 
 from .models import (
     Alert,
@@ -150,6 +151,10 @@ class NotificationService:
     @staticmethod
     def send_alert_notification(alert):
         """Wyślij powiadomienie o alarmie"""
+        # Wyślij do emergency-mode tylko jeśli alert jest CRITICAL
+        if alert.priority == AlertPriority.CRITICAL:
+            NotificationService.send_to_emergency_mode(alert)
+        
         # Pobierz użytkowników, którzy powinni otrzymać powiadomienie
         users = NotificationService.get_recipients(alert)
         
@@ -253,4 +258,34 @@ class NotificationService:
             AlertPriority.CRITICAL: 4
         }
         return priority_levels.get(alert_priority, 0) >= priority_levels.get(min_priority, 0)
+    
+    @staticmethod
+    def send_to_emergency_mode(alert):
+        """Wyślij alert na endpoint /emergency-mode"""
+        try:
+            alert_data = {
+                'id': alert.id,
+                'status': alert.status,
+                'priority': alert.priority,
+                'triggering_value': alert.triggering_value,
+                'timestamp_generated': alert.timestamp_generated.isoformat(),
+                'rule_name': alert.alert_rule.name if alert.alert_rule else None,
+                'rule_metric': alert.alert_rule.target_metric if alert.alert_rule else None,
+            }
+            
+            response = requests.post(
+                f"{settings.BASE_URL}/emergency-mode",
+                json=alert_data,
+                timeout=5
+            )
+            
+            if response.status_code in [200, 201]:
+                logger.info(f"Alert {alert.id} wysłany do /emergency-mode")
+                return True
+            else:
+                logger.error(f"Błąd wysyłania do /emergency-mode: {response.status_code} - {response.text}")
+                return False
+        except requests.exceptions.RequestException as e:
+            logger.error(f"Błąd połączenia z /emergency-mode: {e}")
+            return False
 
