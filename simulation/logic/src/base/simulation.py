@@ -4,6 +4,7 @@ from datetime import datetime, timedelta
 
 from environment import Environment
 
+
 # class RandomEvent:
 #     def __init__(self, chance: float, interval: int):
 #         self.chance = chance
@@ -19,12 +20,12 @@ from environment import Environment
 class Simulation:
     def __init__(self):
         self.environments: list[Environment] = []
-        
+
         self.base_millis_per_tick: int = 15 * 60 * 1000
         self.simulated_millis_per_tick: int = self.base_millis_per_tick
         self.current_tick: int = 0
         self.STARTING_DATETIME: datetime = datetime.now()
-        
+
         self.running: bool = False
 
     # Running logic
@@ -62,8 +63,8 @@ class Simulation:
 
             next_tick += interval
             wait_time = next_tick - time.perf_counter()
-            if wait_time > 0:
-                time.sleep(wait_time)
+            if wait_time > -0.5:
+                time.sleep(abs(wait_time))
             else:
                 raise RuntimeError(
                     f"Tick processing overran and loop is running {wait_time:.3f}s slow"
@@ -77,7 +78,7 @@ class Simulation:
 
     def is_running(self) -> bool:
         return self.running
-    
+
     # Time simulation
 
     def get_current_date(self) -> datetime:
@@ -94,7 +95,8 @@ class Simulation:
 
     def set_time_resolution(self, millis_per_tick: int) -> None:
         if millis_per_tick < 1 or millis_per_tick > 7 * 24 * 60 * 60 * 1000:
-            raise ValueError(f'time resolution must be between a millisecond (1) and a week (604800000), got {millis_per_tick}')
+            raise ValueError(
+                f'time resolution must be between a millisecond (1) and a week (604800000), got {millis_per_tick}')
         sim_speed = self.get_simulation_speed()
         self.base_millis_per_tick = millis_per_tick
         self.set_simulation_speed(sim_speed)
@@ -107,5 +109,5 @@ class Simulation:
     def get_environments(self) -> list[Environment]:
         return self.environments
 
-    def create_new_environment(self, name: str) :
+    def create_new_environment(self, name: str):
         self.environments.append(Environment(name, self))

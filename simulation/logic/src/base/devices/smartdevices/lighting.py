@@ -1,10 +1,10 @@
 from devices.smartdevice import SmartDevice
 from base.environment import Environment
 
+
 class Lighting(SmartDevice):
-    def __init__(self, name: str, env: Environment, power_usage_watt: float, brightness_threshold: float = 0.3):
+    def __init__(self, name: str, env, power_usage_watt: float):
         super().__init__(name, env, power_usage_watt)
-        self.threshold = brightness_threshold
         self.is_on = False
 
     def update(self, millis_passed: int):

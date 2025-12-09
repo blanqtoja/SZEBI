@@ -1,8 +1,9 @@
 import math
 import random
 import weakref
-
-from simulation import Simulation
+from abc import abstractmethod, ABC
+import json
+import paho.mqtt.client as mqtt
 
 class Weather:
     def __init__(self, simulation: Simulation):
@@ -30,31 +31,28 @@ class Weather:
         return s
 
     def update(self, millis: int) -> None:
-        self.update_sunlight()
-        self.update_cloudiness()
-        self.update_rainfall()
-        self.update_wind()
-        self.update_temperature()
+        self.curr_heating_power = 0
+        self.curr_lighting_power = 0
 
-    def update_sunlight(self) -> None:
-        date = self.sim().get_current_date()
-        hour = date.hour + date.minute / 60.0
-        day_phase = (hour - 6) / 12 * math.pi
-        sun = math.sin(day_phase)
+        self.update_sunlight(millis)
+        self.update_cloudiness(millis)
+        self.update_rainfall(millis)
+        self.update_wind(millis)
+        self.update_temperature(millis)
+        self.curr_heating_power = 0.0
+        self.curr_lighting_power = 0.0
 
-        self.sunlight = max(0.0, min(1.0, sun))
-        self.brightness = self.sunlight * (1 - self.cloudiness * 0.8)
+        self.publish_metric("temperature", self.temperature, "C")
+        self.publish_metric("temperature", self.temperature, "C")
+        self.publish_metric("sunlight", self.sunlight, "")
+        self.publish_metric("brightness", self.brightness, "lumen")
+        self.publish_metric("cloudiness", self.cloudiness, "percent")
+        self.publish_metric("rainfall", self.rainfall, "mmh")
+        self.publish_metric("wind", self.wind, "m/s")
 
-    def update_cloudiness(self) -> None:
-        self.cloudiness += random.uniform(-0.02, 0.02)
-        self.cloudiness = max(0.0, min(1.0, self.cloudiness))
-
-    def update_rainfall(self) -> None:
-        if self.cloudiness > 0.6:
-            if random.random() < 0.1:
-                self.rainfall = random.uniform(0.5, 5.0)
-        else:
-            self.rainfall = 0.0
+    @abstractmethod
+    def update_sunlight(self, millis: int) -> None:
+        pass
 
     def update_wind(self) -> None:
         self.wind_trend += random.uniform(-0.02, 0.02)

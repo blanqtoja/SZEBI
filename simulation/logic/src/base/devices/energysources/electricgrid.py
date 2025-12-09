@@ -8,11 +8,11 @@ class ElectricGrid(EnergySource):
         super().__init__("electric-grid", env)
         self.price_per_kwh = price_per_kwh
 
-    def calculate_production(self, weather: Weather, millis_passed: int) ->float:
+    def calculate_production(self, weather: Weather, millis_passed: int) -> float:
         return 0.0
 
     def update(self, millis_passed: int) -> None:
         pass
 
-    def supply(self, needed_kwh: float)->float:
+    def supply(self, needed_kwh: float) -> float:
         return needed_kwh

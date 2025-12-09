@@ -2,6 +2,7 @@ from devices.energysource import EnergySource
 from base.weather import Weather
 from base.environment import Environment
 
+
 class WindTurbine(EnergySource):
     def __init__(self, name: str, env: Environment, rated_power_watt: float, rated_speed: float = 12.0):
         super().__init__(name, env)

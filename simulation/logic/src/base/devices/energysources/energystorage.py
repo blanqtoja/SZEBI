@@ -2,6 +2,7 @@ from devices.energysource import EnergySource
 from base.weather import Weather
 from base.environment import Environment
 
+
 class EnergyStorage(EnergySource):
     def __init__(self, name: str, env: Environment, capacity_kwh: float, max_charge_kw: float, max_discharge_kw: float) -> None:
         super().__init__(name, env)

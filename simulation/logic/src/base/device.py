@@ -4,15 +4,16 @@ from src.base.environment import Environment
 from src.base.simulation import Simulation
 from src.util.utils import validate_name
 import weakref
+import json
+
 
 class Device(ABC):
-    uuid: UUID = uuid4()
     is_active: bool = False
     
     def __init__(self, name: str, environment: Environment) -> None:
         if type(self) is Device:
             raise TypeError("Device is abstract")
-        
+        self.uuid = uuid4()
         self._environment = weakref.ref(environment)
         self._simulation = weakref.ref(environment.sim())
 
@@ -40,6 +41,19 @@ class Device(ABC):
             raise RuntimeError('Weather exists outside of Simulation context')
         return s
 
+    def publish_state(self):
+        env = self.env()
+        mqtt = env.mqtt
+        topic = f"szebi/{env.uuid}/device/{self.uuid}/state"
+
+        payload = {
+            "name": self.name,
+            "is_active": self.is_active,
+            "ts": int(self.sim().get_current_date().timestamp())
+        }
+
+        mqtt.publish(topic, json.dumps(payload), qos=1, retain=True)
+
     @abstractmethod
     def update(self, millis_passed: int) -> None:
         pass
@@ -53,6 +67,3 @@ class Device(ABC):
     def set_name(self, name: str) -> None:
         validate_name(name)
         self.name = name
-
-
-
