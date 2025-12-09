@@ -2,6 +2,7 @@ from django.contrib import admin
 from .models import DataLog,Location, Sensor, SensorType, Measurement, SensorStatus, DataLogLevel, MeasurementStatus
 # from .models import DataPoint
 
+
 # @admin.register(DataPoint)
 # class DataPointAdmin(admin.ModelAdmin):
 #     list_display = ('source', 'timestamp', 'value')
