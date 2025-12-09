@@ -114,6 +114,7 @@ class MonitoringService:
         
         return triggered_rules
     
+    # todo: czy timestamp dodac jako timestamp_generated?
     @staticmethod
     def create_alert(rule, value, timestamp):
         """Utwórz alarm"""
@@ -130,6 +131,7 @@ class MonitoringService:
             logger.error(f"Błąd tworzenia alarmu: {e}")
             return None
     
+    # todo: dead code? prawdopodobnie nie jest potrzebna, save() wystarcza
     @staticmethod
     def save_alert(alert_id, user_id):
         """Zapisz alarm (historyczny zapis)"""
@@ -157,11 +159,15 @@ class NotificationService:
             for pref in preferences:
                 # Sprawdź poziom priorytetu
                 if NotificationService._check_priority(alert.priority, pref.min_priority_level):
+                    # todo: moze wydajniej by bylo zbierac adresy email i potem wyslac jednego maila do wsyzstkich
                     if pref.enable_email:
                         NotificationService._send_email(user, alert)
                     if pref.enable_webpush:
                         NotificationService._send_webpush(user, alert)
     
+    # todo: filtr po NotificationGroup? 
+    # moze przeniesc logike fitru z send_alert_notification do get_recipients?
+    # od alertu -> alarm_rule -> czy dana grupa ma taki priorytet -> uzytkownicy z tej grupy
     @staticmethod
     def get_recipients(alert):
         """Pobierz odbiorców powiadomienia dla alarmu"""
@@ -222,6 +228,7 @@ class NotificationService:
     def _send_webpush(user, alert):
         """Wyślij powiadomienie WebPush"""
         try:
+            # todo: dodac biblioteke do webpush
             # Implementacja WebPush (wymaga dodatkowej biblioteki)
             # Na potrzeby przykładu tylko logowanie
             logger.info(f"Wysłano WebPush do {user.username}")

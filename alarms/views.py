@@ -14,13 +14,16 @@ class AlertViewSet(viewsets.ModelViewSet):
     def list(self, request):
         """Lista alarmów"""
         alerts = Alert.objects.select_related('alert_rule').all()
-        # Tutaj dodaj serializer
+        #todo: dodac serializer do json, na razie zwracane sa surowe dane
+        #todo: mozna dodac stronicowanie
+        #todo: filtrowanie alarmow
         return Response({'alerts': list(alerts.values())})
     
     @action(detail=True, methods=['post'])
     def acknowledge(self, request, pk=None):
         """Potwierdź alarm"""
         alert = self.get_object()
+        #todo: sprawdzic czy user zawsze istnieje, prawdopodobnie django nam go zapewnia
         user = request.user.szebi_profile
         comment = request.data.get('comment', None)
         
@@ -37,6 +40,7 @@ class AlertViewSet(viewsets.ModelViewSet):
     def close(self, request, pk=None):
         """Zamknij alarm"""
         alert = self.get_object()
+        #todo: sprawdzic czy user zawsze istnieje
         user = request.user.szebi_profile
         comment = request.data.get('comment', None)
         
@@ -71,6 +75,7 @@ class AlertRuleViewSet(viewsets.ModelViewSet):
         try:
             rule = AlertRule.objects.get(pk=pk)
             for key, value in request.data.items():
+                #todo: brakuje walidacji danych
                 setattr(rule, key, value)
             rule.save()
             return Response({'status': 'updated'})
