@@ -34,16 +34,18 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     
-    # Core system app (custom user + shared services)
-    'core.apps.CoreConfig', # To zostawiamy, jeśli folder 'core' istnieje i ma plik apps.py
-    
-    # Modular apps - TYMCZASOWO WYŁĄCZONE
+    # Core system app
+    'core.apps.CoreConfig',
+
+    # Modular apps
     'simulation.apps.SimulationConfig',
     # 'acquisition.apps.AcquisitionConfig',
     'analysis.apps.AnalysisConfig',
     # 'forecasting.apps.ForecastingConfig',
-    # 'optimization.apps.OptimizationConfig',
+    'optimization.apps.OptimizationConfig',
+
     'alarms.apps.AlarmsConfig',
+    'rest_framework',
 ]
 
 MIDDLEWARE = [

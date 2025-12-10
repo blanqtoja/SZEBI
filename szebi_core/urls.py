@@ -48,9 +48,12 @@ def emergency_mode(request):
         print(f"ERROR parsing alert: {e}")
         return JsonResponse({'error': str(e)}, status=400)
 
-# ---- urlpatterns merged from alarms + main ----
+# ---- urlpatterns merged from alarms + optimization + analysis ----
 urlpatterns = [
     path('admin/', admin.site.urls),
+
+    # optimization API
+    path('api/optimization/', include('optimization.api.urls')),
 
     # alarms API
     path('api/', include(router.urls)),
