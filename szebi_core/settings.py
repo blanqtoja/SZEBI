@@ -41,7 +41,7 @@ INSTALLED_APPS = [
     'simulation.apps.SimulationConfig',
     # 'acquisition.apps.AcquisitionConfig',
     # 'analysis.apps.AnalysisConfig',
-    # 'forecasting.apps.ForecastingConfig',
+    'forecasting.apps.ForecastingConfig',
     # 'optimization.apps.OptimizationConfig',
     # 'alarms.apps.AlarmsConfig',
 ]
