@@ -3,7 +3,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
 
-from .models import Alert, AlertRule
+from .models import Alert, AlertRule, SZEBiUser
 from .services import AlertManager
 from .serializers import AlertSerializer, AlertRuleSerializer
 
@@ -13,8 +13,7 @@ class AlertViewSet(viewsets.ModelViewSet):
     queryset = Alert.objects.all()
     serializer_class = AlertSerializer
     # TODO: Tymczasowo wyłączone logowanie - zmienić na IsAuthenticated
-    # permission_classes = [AllowAny]
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
 
     def list(self, request):
         """Lista alarmów"""
@@ -28,10 +27,11 @@ class AlertViewSet(viewsets.ModelViewSet):
     def acknowledge(self, request, pk=None):
         """Potwierdź alarm"""
         alert = self.get_object()
+        # todo: sprawdzic czy user zawsze istnieje, prawdopodobnie django nam go zapewnia
+        user = request.user.szebi_profile
         comment = request.data.get('comment', None)
 
-        success = AlertManager.acknowledge_alert(
-            alert.id, request.user.id, comment)
+        success = AlertManager.acknowledge_alert(alert.id, user.id, comment)
 
         if success:
             return Response({'status': 'acknowledged'})
@@ -44,9 +44,11 @@ class AlertViewSet(viewsets.ModelViewSet):
     def close(self, request, pk=None):
         """Zamknij alarm"""
         alert = self.get_object()
+        # todo: sprawdzic czy user zawsze istnieje
+        user = request.user.szebi_profile
         comment = request.data.get('comment', None)
 
-        success = AlertManager.close_alert(alert.id, request.user.id, comment)
+        success = AlertManager.close_alert(alert.id, user.id, comment)
 
         if success:
             return Response({'status': 'closed'})
@@ -61,8 +63,7 @@ class AlertRuleViewSet(viewsets.ModelViewSet):
     queryset = AlertRule.objects.all()
     serializer_class = AlertRuleSerializer
     # TODO: Tymczasowo wyłączone logowanie - zmienić na IsAuthenticated
-    # permission_classes = [AllowAny]
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
 
     def create(self, request):
         """Utwórz nową regułę"""

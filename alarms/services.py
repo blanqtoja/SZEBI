@@ -3,21 +3,19 @@ from django.conf import settings
 import logging
 import requests
 
-from django.contrib.auth import get_user_model
 from .models import (
     Alert,
     AlertRule,
     AlertStatus,
     AlertPriority,
     AlertComment,
+    SZEBiUser,
     NotificationLog,
     NotificationStatus,
     ChannelType,
     ChannelTypes,
     NotificationPreference
 )
-
-User = get_user_model()
 
 logger = logging.getLogger(__name__)
 
@@ -44,7 +42,7 @@ class AlertManager:
         """Potwierdź alarm"""
         try:
             alert = Alert.objects.get(id=alert_id)
-            user = User.objects.get(id=user_id)
+            user = SZEBiUser.objects.get(id=user_id)
 
             alert.acknowledge(user)
 
@@ -55,7 +53,7 @@ class AlertManager:
 
             logger.info(f"Alarm {alert_id} potwierdzony przez {user.username}")
             return True
-        except (Alert.DoesNotExist, User.DoesNotExist) as e:
+        except (Alert.DoesNotExist, SZEBiUser.DoesNotExist) as e:
             logger.error(f"Błąd potwierdzenia alarmu: {e}")
             return False
 
@@ -64,7 +62,7 @@ class AlertManager:
         """Zamknij alarm"""
         try:
             alert = Alert.objects.get(id=alert_id)
-            user = User.objects.get(id=user_id)
+            user = SZEBiUser.objects.get(id=user_id)
 
             alert.close(user)
 
@@ -75,7 +73,7 @@ class AlertManager:
 
             logger.info(f"Alarm {alert_id} zamknięty przez {user.username}")
             return True
-        except (Alert.DoesNotExist, User.DoesNotExist) as e:
+        except (Alert.DoesNotExist, SZEBiUser.DoesNotExist) as e:
             logger.error(f"Błąd zamknięcia alarmu: {e}")
             return False
 
@@ -188,7 +186,7 @@ class NotificationService:
     def get_recipients(alert):
         """Pobierz odbiorców powiadomienia dla alarmu"""
         # Logika określania odbiorców (np. wszyscy aktywni użytkownicy)
-        return User.objects.filter(is_active=True)
+        return SZEBiUser.objects.filter(is_active=True)
 
     @staticmethod
     def log_notification(user, alert, channel, status, error_message=''):

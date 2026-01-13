@@ -1,8 +1,5 @@
 from rest_framework import serializers
-from django.contrib.auth import get_user_model
-from .models import Alert, AlertRule, AlertComment
-
-User = get_user_model()
+from .models import Alert, AlertRule, AlertComment, SZEBiUser
 
 
 class AlertRuleSerializer(serializers.ModelSerializer):
@@ -23,11 +20,11 @@ class AlertRuleSerializer(serializers.ModelSerializer):
         read_only_fields = ['id']
 
 
-class UserSerializer(serializers.ModelSerializer):
-    """Serializer dla użytkowników"""
+class SZEBiUserSerializer(serializers.ModelSerializer):
+    """Serializer dla użytkowników SZEBi"""
 
     class Meta:
-        model = User
+        model = SZEBiUser
         fields = ['id', 'username', 'email']
 
 
@@ -43,8 +40,8 @@ class AlertSerializer(serializers.ModelSerializer):
     """Serializer dla alarmów"""
     alert_rule = AlertRuleSerializer(read_only=True)
     alert_comment = AlertCommentSerializer(read_only=True)
-    acknowledged_by = UserSerializer(read_only=True)
-    closed_by = UserSerializer(read_only=True)
+    acknowledged_by = SZEBiUserSerializer(read_only=True)
+    closed_by = SZEBiUserSerializer(read_only=True)
 
     status_display = serializers.CharField(
         source='get_status_display', read_only=True)

@@ -25,7 +25,7 @@ function App() {
           <Route path="analysis" element={<div className="p-8 text-center text-gray-400">Moduł Analizy i Raportowania</div>} />
           <Route path="forecasting" element={<div className="p-8 text-center text-gray-400">Moduł Prognozowania</div>} />
           <Route path="optimization" element={<div className="p-8 text-center text-gray-400">Moduł Optymalizacji i Sterowania</div>} />
-          <Route path="alarms" element={<AlarmsPage />} />
+          <Route path="alarms" element={<div className="p-8 text-center text-gray-400">Moduł Alarmów i Utrzymania</div>} />
           
           <Route path="*" element={<div className="p-8 text-center text-gray-400">404 - Strona nie odnaleziona</div>} />
         </Route>
