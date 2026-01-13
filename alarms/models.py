@@ -73,33 +73,10 @@ class NotificationGroup(models.Model):
         return self.users.all()
 
 
-class SZEBiUser(models.Model):
-    """Rozszerzony profil użytkownika"""
-    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='szebi_profile')
-    username = models.CharField(max_length=255, unique=True)
-    email = models.EmailField()
-    phone = models.CharField(max_length=20, blank=True)
-    role = models.CharField(max_length=100)
-    is_active = models.BooleanField(default=True)
-    groups = models.ManyToManyField(NotificationGroup, related_name='szebi_users')
-    
-    class Meta:
-        db_table = 'szebi_user'
-        verbose_name = 'Użytkownik SZEBi'
-        verbose_name_plural = 'Użytkownicy SZEBi'
-    
-    def __str__(self):
-        return self.username
-    
-    def get_notification_preferences(self):
-        """Pobierz preferencje powiadomień użytkownika"""
-        return self.notification_preferences.all()
-
-
 class NotificationPreference(models.Model):
     """Preferencje powiadomień użytkownika"""
     user = models.ForeignKey(
-        SZEBiUser, 
+        settings.AUTH_USER_MODEL, 
         on_delete=models.CASCADE, 
         related_name='notification_preferences'
     )
@@ -198,14 +175,14 @@ class Alert(models.Model):
         default=AlertPriority.MEDIUM
     )
     acknowledged_by = models.ForeignKey(
-        SZEBiUser,
+        settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
         related_name='acknowledged_alerts'
     )
     closed_by = models.ForeignKey(
-        SZEBiUser,
+        settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
@@ -261,7 +238,7 @@ class NotificationLog(models.Model):
         related_name='notification_logs'
     )
     recipient = models.ForeignKey(
-        SZEBiUser,
+        settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name='received_notifications'
     )
