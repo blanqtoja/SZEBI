@@ -582,6 +582,7 @@ a {
   transform: translateY(0);
 }
 
+
 /* Info Box */
 .info-box {
   display: flex;
@@ -976,6 +977,30 @@ a {
 }
 
 .btn-ghost-danger:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-ghost-edit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.35rem 0.6rem;
+  border-radius: 0.5rem;
+  background: rgba(59, 130, 246, 0.1); /* blue-500 */
+  border: 1px solid rgba(59, 130, 246, 0.25);
+  color: #93c5fd; /* blue-300 */
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-ghost-edit:hover:not(:disabled) {
+  background: rgba(59, 130, 246, 0.18);
+  border-color: rgba(59, 130, 246, 0.45);
+  color: #bfdbfe; /* blue-200 */
+}
+
+.btn-ghost-edit:disabled {
   opacity: 0.6;
   cursor: not-allowed;
 }

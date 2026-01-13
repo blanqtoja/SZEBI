@@ -1,11 +1,14 @@
 import React, { useEffect, useState } from 'react';
-import { Bell, Plus, AlertTriangle, Info, CheckCircle2, X, Trash2 } from 'lucide-react';
+import { Bell, Plus, AlertTriangle, Info, CheckCircle2, X, Trash2, SquarePen } from 'lucide-react';
 
 const AlarmsPage = () => {
     const [showAddRuleModal, setShowAddRuleModal] = useState(false);
     const [rules, setRules] = useState([]);
+    const [alerts, setAlerts] = useState([]);
     const [rulesLoading, setRulesLoading] = useState(false);
+    const [alertsLoading, setAlertsLoading] = useState(false);
     const [deletingId, setDeletingId] = useState(null);
+    const [ackId, setAckId] = useState(null);
     const [formData, setFormData] = useState({
         name: '',
         target_metric: '',
@@ -34,6 +37,23 @@ const AlarmsPage = () => {
         }
     };
 
+    
+    const fetchAlerts = async () => {
+        setAlertsLoading(true);
+        try {
+            const res = await fetch('http://localhost:8000/api/alerts/');
+            if (!res.ok) throw new Error('Fetch failed');
+            const data = await res.json();
+            // Expecting DRF list response: either array or {results: []}
+            setAlerts(Array.isArray(data) ? data : data.results || data.alerts || []);
+        } catch (error) {
+            setNotification({ type: 'error', message: 'Nie udało się pobrać alarmów.' });
+        } finally {
+            setAlertsLoading(false);
+            setTimeout(() => setNotification(null), 4000);
+        }
+    };
+
     const handleDelete = async (ruleId) => {
         const confirmed = window.confirm('Czy na pewno chcesz usunąć tę regułę?');
         if (!confirmed) return;
@@ -53,8 +73,31 @@ const AlarmsPage = () => {
         }
     };
 
+    const handleAckAlert = async (alertId, comment) => {
+        const confirmed = window.confirm('Do you want to ack?');
+        if (!confirmed) return;
+        setAckId(alertId);
+        try {
+            const res = await fetch(`http://localhost:8000/api/alerts/${alertId}/acknowledge/`, {
+                method: 'POST',
+                content: {
+                    "comment": comment
+                }
+            });
+            if (!res.ok) throw new Error('Ack failed');
+            setNotification({ type: 'success', message: 'Alarm potwierdzony' });
+            fetchAlerts();
+        } catch (error) {
+            setNotification({ type: 'error', message: 'Nie udało się potweirdzić alarmu' });
+        } finally {
+            setAckId(null);
+            setTimeout(() => setNotification(null), 4000);
+        }
+    };
+
     useEffect(() => {
         fetchRules();
+        fetchAlerts();
     }, []);
 
     const handleInputChange = (e) => {
@@ -154,19 +197,88 @@ const AlarmsPage = () => {
                         </p>
                     </div>
                 </div>
-                <button 
-                    className="btn-add-rule"
-                    onClick={() => setShowAddRuleModal(true)}
-                >
-                    <Plus size={20} />
-                    Dodaj regułę
-                </button>
+                
+            </div>
+            
+            <div className="rules-card">
+                <div className="rules-card-header">
+                    <h3>Lista alarmów</h3>
+                    <button className="btn-secondary" onClick={fetchAlerts} disabled={alertsLoading}>
+                        {alertsLoading ? 'Odświeżanie...' : 'Odśwież'}
+                    </button>
+                </div>
+                <div className="rules-table-wrapper">
+                    <table className="rules-table">
+                        <thead>
+                            <tr>
+                                <th>Zasada</th>
+                                <th>Komentarz</th>
+                                <th>triggering value</th>
+                                <th>generated at</th>
+                                <th>ack at</th>
+                                <th>closed at</th>
+                                <th>status</th>
+                                <th>priority</th>
+                                <th>ack by</th>
+                                <th>closed by</th>
+                                <th>Akcje</th>
+
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {alertsLoading ? (
+                                <tr>
+                                    <td colSpan="8" className="table-empty">Ładowanie...</td>
+                                </tr>
+                            ) : rules.length === 0 ? (
+                                <tr>
+                                    <td colSpan="8" className="table-empty">Brak alarmów do wyświetlenia</td>
+                                </tr>
+                            ) : (
+                                alerts.map(alert => (
+                                    <tr key={alert.id}>
+                                        {console.log(alert)}
+                                        <td>{alert.alert_rule ?? '-'}</td>
+                                        <td>{alert.alert_comment ?? '-'}</td>
+                                        <td>{alert.triggering_value ?? '-'}</td>
+                                        <td>{alert.timestamp_generated ?? '-'}</td>
+                                        <td>{alert.timestamp_acknowledged ?? '-'}</td>
+                                        <td>{alert.timestamp_closed ?? '-'}</td>
+                                        <td>{alert.status ?? '-'}</td>
+                                        <td>{alert.priority ?? '-'}</td>
+                                        <td>{alert.acknowledged_by ?? '-'}</td>
+                                        <td>{alert.closed_by ?? '-'}</td>
+                                        <td>
+                                            <div className="table-actions">
+                                                <button
+                                                    className="btn-ghost-edit"
+                                                    onClick={() => handleAckAlert(alert.id)}
+                                                    disabled={ackId === alert.id}
+                                                >
+                                                    {ackId === alert.id ? 'Potwierdzanie...' : <SquarePen size={16} />}
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))
+                            )}
+                        </tbody>
+                    </table>
+                </div>
             </div>
 
+            <button 
+                className="btn-add-rule"
+                onClick={() => setShowAddRuleModal(true)}
+            >
+                <Plus size={20} />
+                Dodaj regułę
+            </button>
             {/* List of rules */}
             <div className="rules-card">
                 <div className="rules-card-header">
                     <h3>Lista reguł</h3>
+                    
                     <button className="btn-secondary" onClick={fetchRules} disabled={rulesLoading}>
                         {rulesLoading ? 'Odświeżanie...' : 'Odśwież'}
                     </button>
