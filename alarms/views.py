@@ -3,7 +3,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
 
-from .models import Alert, AlertRule, SZEBiUser
+from .models import Alert, AlertRule
 from .services import AlertManager
 from .serializers import AlertSerializer, AlertRuleSerializer
 

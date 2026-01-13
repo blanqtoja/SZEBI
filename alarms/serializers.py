@@ -1,5 +1,6 @@
 from rest_framework import serializers
-from .models import Alert, AlertRule, AlertComment, SZEBiUser
+from .models import Alert, AlertRule, AlertComment
+from core.models import User
 
 
 class AlertRuleSerializer(serializers.ModelSerializer):
@@ -20,11 +21,11 @@ class AlertRuleSerializer(serializers.ModelSerializer):
         read_only_fields = ['id']
 
 
-class SZEBiUserSerializer(serializers.ModelSerializer):
-    """Serializer dla użytkowników SZEBi"""
+class UserSerializer(serializers.ModelSerializer):
+    """Serializer dla użytkowników"""
 
     class Meta:
-        model = SZEBiUser
+        model = User
         fields = ['id', 'username', 'email']
 
 
@@ -40,8 +41,8 @@ class AlertSerializer(serializers.ModelSerializer):
     """Serializer dla alarmów"""
     alert_rule = AlertRuleSerializer(read_only=True)
     alert_comment = AlertCommentSerializer(read_only=True)
-    acknowledged_by = SZEBiUserSerializer(read_only=True)
-    closed_by = SZEBiUserSerializer(read_only=True)
+    acknowledged_by = UserSerializer(read_only=True)
+    closed_by = UserSerializer(read_only=True)
 
     status_display = serializers.CharField(
         source='get_status_display', read_only=True)
