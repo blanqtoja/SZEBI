@@ -27,8 +27,7 @@ class AlertViewSet(viewsets.ModelViewSet):
     def acknowledge(self, request, pk=None):
         """Potwierdź alarm"""
         alert = self.get_object()
-        # todo: sprawdzic czy user zawsze istnieje, prawdopodobnie django nam go zapewnia
-        user = request.user.szebi_profile
+        user = request.user
         comment = request.data.get('comment', None)
 
         success = AlertManager.acknowledge_alert(alert.id, user.id, comment)
@@ -44,8 +43,7 @@ class AlertViewSet(viewsets.ModelViewSet):
     def close(self, request, pk=None):
         """Zamknij alarm"""
         alert = self.get_object()
-        # todo: sprawdzic czy user zawsze istnieje
-        user = request.user.szebi_profile
+        user = request.user
         comment = request.data.get('comment', None)
 
         success = AlertManager.close_alert(alert.id, user.id, comment)
