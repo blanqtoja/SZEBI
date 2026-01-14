@@ -2,9 +2,10 @@ from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
+from django.utils import timezone
 
 from .models import Alert, AlertRule
-from .services import AlertManager
+from .services import AlertManager, MonitoringService
 from .serializers import AlertSerializer, AlertRuleSerializer
 
 
@@ -99,4 +100,48 @@ class AlertRuleViewSet(viewsets.ModelViewSet):
             return Response(
                 {'error': 'Reguła nie istnieje'},
                 status=status.HTTP_404_NOT_FOUND
+            )
+
+
+class DataInspectionViewSet(viewsets.ViewSet):
+    """ViewSet do inspectowania danych i sprawdzania reguł"""
+    permission_classes = [AllowAny]
+
+    @action(detail=False, methods=['post'])
+    def check_rules(self, request):
+        """
+        POST endpoint do analizy danych i sprawdzenia złamania reguł.
+        Oczekuje: metric_name, value, timestamp (opcjonalny)
+        """
+        try:
+            metric_name = request.data.get('metric_name')
+            value = request.data.get('value')
+            timestamp = request.data.get('timestamp')
+
+            # Walidacja wymaganych pól
+            if not metric_name or value is None:
+                return Response(
+                    {'error': 'Wymagane pola: metric_name, value'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            # Użyj aktualnego czasu jeśli timestamp nie został podany
+            if not timestamp:
+                timestamp = timezone.now()
+
+            # Uruchom analizę danych
+            MonitoringService.inspect_data(metric_name, value, timestamp)
+
+            return Response({
+                'status': 'success',
+                'message': 'Dane zostały przeanalizowane',
+                'metric_name': metric_name,
+                'value': value,
+                'timestamp': timestamp
+            })
+
+        except Exception as e:
+            return Response(
+                {'error': f'Błąd podczas analizy danych: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
