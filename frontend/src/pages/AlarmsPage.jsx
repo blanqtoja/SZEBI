@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Bell, Plus, AlertTriangle, Info, CheckCircle2, X, Trash2, SquarePen } from 'lucide-react';
+import { fetchAlertRules, createAlertRule, deleteAlertRule, fetchAlerts, acknowledgeAlert } from '../utils/apiClient';
 
 const AlarmsPage = () => {
     const [showAddRuleModal, setShowAddRuleModal] = useState(false);
@@ -24,13 +25,8 @@ const AlarmsPage = () => {
     const fetchRules = async () => {
         setRulesLoading(true);
         try {
-            const res = await fetch('http://localhost:8000/api/alert-rules/', {
-                credentials: 'include'
-            });
-            if (!res.ok) throw new Error('Fetch failed');
-            const data = await res.json();
-            // Expecting DRF list response: either array or {results: []}
-            setRules(Array.isArray(data) ? data : data.results || data.alerts || []);
+            const data = await fetchAlertRules();
+            setRules(data);
         } catch (error) {
             setNotification({ type: 'error', message: 'Nie udało się pobrać reguł.' });
         } finally {
@@ -40,16 +36,11 @@ const AlarmsPage = () => {
     };
 
     
-    const fetchAlerts = async () => {
+    const fetchAlertsData = async () => {
         setAlertsLoading(true);
         try {
-            const res = await fetch('http://localhost:8000/api/alerts/', {
-                credentials: 'include'
-            });
-            if (!res.ok) throw new Error('Fetch failed');
-            const data = await res.json();
-            // Expecting DRF list response: either array or {results: []}
-            setAlerts(Array.isArray(data) ? data : data.results || data.alerts || []);
+            const data = await fetchAlerts();
+            setAlerts(data);
         } catch (error) {
             setNotification({ type: 'error', message: 'Nie udało się pobrać alarmów.' });
         } finally {
@@ -63,11 +54,7 @@ const AlarmsPage = () => {
         if (!confirmed) return;
         setDeletingId(ruleId);
         try {
-            const res = await fetch(`http://localhost:8000/api/alert-rules/${ruleId}/`, {
-                method: 'DELETE',
-                credentials: 'include'
-            });
-            if (!res.ok) throw new Error('Delete failed');
+            await deleteAlertRule(ruleId);
             setNotification({ type: 'success', message: 'Reguła została usunięta.' });
             fetchRules();
         } catch (error) {
@@ -83,16 +70,9 @@ const AlarmsPage = () => {
         if (!confirmed) return;
         setAckId(alertId);
         try {
-            const res = await fetch(`http://localhost:8000/api/alerts/${alertId}/acknowledge/`, {
-                method: 'POST',
-                credentials: 'include',
-                content: {
-                    "comment": comment
-                }
-            });
-            if (!res.ok) throw new Error('Ack failed');
+            await acknowledgeAlert(alertId, comment);
             setNotification({ type: 'success', message: 'Alarm potwierdzony' });
-            fetchAlerts();
+            fetchAlertsData();
         } catch (error) {
             setNotification({ type: 'error', message: 'Nie udało się potweirdzić alarmu' });
         } finally {
@@ -103,7 +83,7 @@ const AlarmsPage = () => {
 
     useEffect(() => {
         fetchRules();
-        fetchAlerts();
+        fetchAlertsData();
     }, []);
 
     const handleInputChange = (e) => {
@@ -130,35 +110,25 @@ const AlarmsPage = () => {
                 priority: formData.priority
             };
 
-            const response = await fetch('http://localhost:8000/api/alert-rules/', {
-                method: 'POST',
-                credentials: 'include',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(ruleData)
+            await createAlertRule(ruleData);
+            
+            setNotification({
+                type: 'success',
+                message: 'Reguła alarmu została pomyślnie utworzona!'
             });
-
-            if (response.ok) {
-                setNotification({
-                    type: 'success',
-                    message: 'Reguła alarmu została pomyślnie utworzona!'
-                });
-                setFormData({
-                    name: '',
-                    target_metric: '',
-                    operator: 'GREATER_THAN',
-                    threshold_min: '',
-                    threshold_max: '',
-                    duration_seconds: 0,
-                    priority: 'MEDIUM'
-                });
-                setShowAddRuleModal(false);
-                fetchRules();
-            } else {
-                throw new Error('Failed to create rule');
-            }
+            setFormData({
+                name: '',
+                target_metric: '',
+                operator: 'GREATER_THAN',
+                threshold_min: '',
+                threshold_max: '',
+                duration_seconds: 0,
+                priority: 'MEDIUM'
+            });
+            setShowAddRuleModal(false);
+            fetchRules();
         } catch (error) {
+            console.error(error);
             setNotification({
                 type: 'error',
                 message: 'Nie udało się utworzyć reguły. Spróbuj ponownie.'
