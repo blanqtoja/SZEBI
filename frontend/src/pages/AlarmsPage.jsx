@@ -24,7 +24,9 @@ const AlarmsPage = () => {
     const fetchRules = async () => {
         setRulesLoading(true);
         try {
-            const res = await fetch('http://localhost:8000/api/alert-rules/');
+            const res = await fetch('http://localhost:8000/api/alert-rules/', {
+                credentials: 'include'
+            });
             if (!res.ok) throw new Error('Fetch failed');
             const data = await res.json();
             // Expecting DRF list response: either array or {results: []}
@@ -41,7 +43,9 @@ const AlarmsPage = () => {
     const fetchAlerts = async () => {
         setAlertsLoading(true);
         try {
-            const res = await fetch('http://localhost:8000/api/alerts/');
+            const res = await fetch('http://localhost:8000/api/alerts/', {
+                credentials: 'include'
+            });
             if (!res.ok) throw new Error('Fetch failed');
             const data = await res.json();
             // Expecting DRF list response: either array or {results: []}
@@ -60,7 +64,8 @@ const AlarmsPage = () => {
         setDeletingId(ruleId);
         try {
             const res = await fetch(`http://localhost:8000/api/alert-rules/${ruleId}/`, {
-                method: 'DELETE'
+                method: 'DELETE',
+                credentials: 'include'
             });
             if (!res.ok) throw new Error('Delete failed');
             setNotification({ type: 'success', message: 'Reguła została usunięta.' });
@@ -80,6 +85,7 @@ const AlarmsPage = () => {
         try {
             const res = await fetch(`http://localhost:8000/api/alerts/${alertId}/acknowledge/`, {
                 method: 'POST',
+                credentials: 'include',
                 content: {
                     "comment": comment
                 }
@@ -126,6 +132,7 @@ const AlarmsPage = () => {
 
             const response = await fetch('http://localhost:8000/api/alert-rules/', {
                 method: 'POST',
+                credentials: 'include',
                 headers: {
                     'Content-Type': 'application/json',
                 },

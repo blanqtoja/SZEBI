@@ -1,2 +1,4 @@
 [x] wywalic szebi usera z alarmow, korzystajmy z usera
-[ ] autentykacja przy odbieraniu alarmow i zasad
+[x] autentykacja przy odbieraniu alarmow i zasad
+
+[] komunikacja z modulem akwizycji

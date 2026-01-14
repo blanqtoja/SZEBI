@@ -12,8 +12,7 @@ class AlertViewSet(viewsets.ModelViewSet):
     """ViewSet dla alarmów"""
     queryset = Alert.objects.all()
     serializer_class = AlertSerializer
-    # TODO: Tymczasowo wyłączone logowanie - zmienić na IsAuthenticated
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
 
     def list(self, request):
         """Lista alarmów"""
@@ -62,8 +61,7 @@ class AlertRuleViewSet(viewsets.ModelViewSet):
     """ViewSet dla reguł alarmów"""
     queryset = AlertRule.objects.all()
     serializer_class = AlertRuleSerializer
-    # TODO: Tymczasowo wyłączone logowanie - zmienić na IsAuthenticated
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
 
     def create(self, request):
         """Utwórz nową regułę"""
