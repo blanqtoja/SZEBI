@@ -101,17 +101,7 @@ const Layout = ({ user, onLogout }) => {
                                 setIsMenuOpen(false);
                                 onLogout();
                             }}
-                            className="
-                                flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all duration-200
-                                text-sm
-                                
-                                bg-gray-800 border border-gray-700 text-red-400
-                                hover:bg-gray-700 hover:text-red-300 hover:border-red-500/30
-                                
-                                w-full mt-2
-                                
-                                md:w-auto md:ml-6 md:mt-0
-                            "
+                            className="flex items-center gap-2 text-red-400 hover:text-red-300 transition-colors mt-2 md:mt-0 md:ml-6"
                         >
                             <LogOut size={16} />
                             <span>Wyloguj się</span>
