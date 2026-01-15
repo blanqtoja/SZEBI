@@ -156,6 +156,27 @@ export async function acknowledgeAlert(alertId, comment = null) {
 }
 
 /**
+ * Close an alert
+ * @param {number} alertId - Alert ID
+ * @param {string} comment - Optional comment
+ * @returns {Promise<object>} - Response data
+ */
+export async function closeAlert(alertId, comment = null) {
+    const body = comment ? { comment } : {};
+    
+    const response = await apiRequest(`/api/alerts/${alertId}/close/`, {
+        method: 'POST',
+        body: JSON.stringify(body)
+    });
+
+    if (!response.ok) {
+        throw new Error('Failed to close alert');
+    }
+
+    return response.json();
+}
+
+/**
  * Inspect data and check rules
  * @param {object} data - Data to inspect (metric_name, value, timestamp)
  * @returns {Promise<object>} - Response data

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { Bell, Plus, AlertTriangle, Info, CheckCircle2, X, Trash2, SquarePen } from 'lucide-react';
-import { fetchAlertRules, createAlertRule, deleteAlertRule, fetchAlerts, acknowledgeAlert } from '../utils/apiClient';
+import { Bell, Plus, AlertTriangle, Info, CheckCircle2, X, Trash2, SquarePen, XCircle } from 'lucide-react';
+import { fetchAlertRules, createAlertRule, deleteAlertRule, fetchAlerts, acknowledgeAlert, closeAlert } from '../utils/apiClient';
 
 const AlarmsPage = () => {
     const [showAddRuleModal, setShowAddRuleModal] = useState(false);
@@ -10,6 +10,10 @@ const AlarmsPage = () => {
     const [alertsLoading, setAlertsLoading] = useState(false);
     const [deletingId, setDeletingId] = useState(null);
     const [ackId, setAckId] = useState(null);
+    const [showAlertActionModal, setShowAlertActionModal] = useState(false);
+    const [selectedAlert, setSelectedAlert] = useState(null);
+    const [alertComment, setAlertComment] = useState('');
+    const [alertActionLoading, setAlertActionLoading] = useState(false);
     const [formData, setFormData] = useState({
         name: '',
         target_metric: '',
@@ -65,18 +69,44 @@ const AlarmsPage = () => {
         }
     };
 
-    const handleAckAlert = async (alertId, comment) => {
-        const confirmed = window.confirm('Do you want to ack?');
-        if (!confirmed) return;
-        setAckId(alertId);
+    const openAlertActionModal = (alert) => {
+        setSelectedAlert(alert);
+        setAlertComment('');
+        setShowAlertActionModal(true);
+    };
+
+    const handleAcknowledgeAlert = async () => {
+        if (!selectedAlert) return;
+        setAlertActionLoading(true);
         try {
-            await acknowledgeAlert(alertId, comment);
+            await acknowledgeAlert(selectedAlert.id, alertComment || null);
             setNotification({ type: 'success', message: 'Alarm potwierdzony' });
+            setShowAlertActionModal(false);
+            setSelectedAlert(null);
+            setAlertComment('');
             fetchAlertsData();
         } catch (error) {
-            setNotification({ type: 'error', message: 'Nie udało się potweirdzić alarmu' });
+            setNotification({ type: 'error', message: 'Nie udało się potwierdzić alarmu' });
         } finally {
-            setAckId(null);
+            setAlertActionLoading(false);
+            setTimeout(() => setNotification(null), 4000);
+        }
+    };
+
+    const handleCloseAlert = async () => {
+        if (!selectedAlert) return;
+        setAlertActionLoading(true);
+        try {
+            await closeAlert(selectedAlert.id, alertComment || null);
+            setNotification({ type: 'success', message: 'Alarm zamknięty' });
+            setShowAlertActionModal(false);
+            setSelectedAlert(null);
+            setAlertComment('');
+            fetchAlertsData();
+        } catch (error) {
+            setNotification({ type: 'error', message: 'Nie udało się zamknąć alarmu' });
+        } finally {
+            setAlertActionLoading(false);
             setTimeout(() => setNotification(null), 4000);
         }
     };
@@ -229,10 +259,11 @@ const AlarmsPage = () => {
                                             <div className="table-actions">
                                                 <button
                                                     className="btn-ghost-edit"
-                                                    onClick={() => handleAckAlert(alert.id)}
-                                                    disabled={ackId === alert.id}
+                                                    onClick={() => openAlertActionModal(alert)}
+                                                    disabled={alert.status === 'CLOSED'}
+                                                    title={alert.status === 'CLOSED' ? 'Alarm zamknięty' : 'Zarządzaj alarmem'}
                                                 >
-                                                    {ackId === alert.id ? 'Potwierdzanie...' : <SquarePen size={16} />}
+                                                    <SquarePen size={16} />
                                                 </button>
                                             </div>
                                         </td>
@@ -323,6 +354,101 @@ const AlarmsPage = () => {
                     </p>
                 </div>
             </div>
+
+            {/* Alert Action Modal */}
+            {showAlertActionModal && selectedAlert && (
+                <div className="modal-overlay" onClick={() => setShowAlertActionModal(false)}>
+                    <div className="modal-container" onClick={(e) => e.stopPropagation()}>
+                        <div className="modal-header">
+                            <h2 className="modal-title">
+                                {selectedAlert.status === 'NEW' ? 'Zarządzaj alarmem' : 'Zamknij alarm'}
+                            </h2>
+                            <button 
+                                className="modal-close"
+                                onClick={() => setShowAlertActionModal(false)}
+                            >
+                                <X size={24} />
+                            </button>
+                        </div>
+
+                        <div className="rule-form">
+                            {/* Alert Info */}
+                            <div className="form-group form-group-full">
+                                <label className="form-label">Reguła alarmu</label>
+                                <div style={{ padding: '8px 12px', background: '#f5f5f5', borderRadius: '6px' }}>
+                                    {selectedAlert.alert_rule || 'Brak nazwy'}
+                                </div>
+                            </div>
+
+                            <div className="form-group form-group-full">
+                                <label className="form-label">Status</label>
+                                <div style={{ padding: '8px 12px', background: '#f5f5f5', borderRadius: '6px' }}>
+                                    {selectedAlert.status}
+                                </div>
+                            </div>
+
+                            <div className="form-group form-group-full">
+                                <label className="form-label">Wartość wyzwalająca</label>
+                                <div style={{ padding: '8px 12px', background: '#f5f5f5', borderRadius: '6px' }}>
+                                    {selectedAlert.triggering_value ?? '-'}
+                                </div>
+                            </div>
+
+                            {/* Comment Field */}
+                            <div className="form-group form-group-full">
+                                <label htmlFor="alertComment" className="form-label">
+                                    Komentarz
+                                </label>
+                                <textarea
+                                    id="alertComment"
+                                    className="form-input"
+                                    value={alertComment}
+                                    onChange={(e) => setAlertComment(e.target.value)}
+                                    placeholder="Dodaj komentarz (opcjonalnie)..."
+                                    rows="4"
+                                    style={{ resize: 'vertical' }}
+                                />
+                            </div>
+
+                            {/* Action Buttons */}
+                            <div className="form-actions" style={{ gap: '12px' }}>
+                                <button
+                                    type="button"
+                                    className="btn-secondary"
+                                    onClick={() => setShowAlertActionModal(false)}
+                                    disabled={alertActionLoading}
+                                >
+                                    Anuluj
+                                </button>
+                                
+                                {selectedAlert.status === 'NEW' && (
+                                    <button
+                                        type="button"
+                                        className="btn-primary"
+                                        onClick={handleAcknowledgeAlert}
+                                        disabled={alertActionLoading}
+                                        style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
+                                    >
+                                        <CheckCircle2 size={16} />
+                                        {alertActionLoading ? 'Potwierdzanie...' : 'Potwierdź'}
+                                    </button>
+                                )}
+                                
+                                <button
+                                    type="button"
+                                    className="btn-ghost-danger"
+                                    onClick={handleCloseAlert}
+                                    disabled={alertActionLoading}
+                                    style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
+                                >
+                                    <XCircle size={16} />
+                                    {alertActionLoading ? 'Zamykanie...' : 'Zamknij'}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* Add Rule Modal */}
             {showAddRuleModal && (
