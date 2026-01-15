@@ -2,6 +2,7 @@ from django.contrib.auth import authenticate, login
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, permissions
+from .serializers import UserSerializer
 
 class LoginView(APIView):
     permission_classes = [permissions.AllowAny]
@@ -13,11 +14,12 @@ class LoginView(APIView):
         
         if user is not None:
             login(request, user)
+            
+            serializer = UserSerializer(user)
+            
             return Response({
                 "status": "success",
-                "user": {
-                    "username": user.username,
-                    "is_admin": user.is_superuser
-                }
+                "user": serializer.data
             })
+            
         return Response({"error": "Nieprawidłowe dane logowania"}, status=status.HTTP_401_UNAUTHORIZED)
