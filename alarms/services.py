@@ -44,6 +44,12 @@ class AlertManager:
             alert = Alert.objects.get(id=alert_id)
             user = User.objects.get(id=user_id)
 
+            # Sprawdź uprawnienia użytkownika
+            if not (user.is_building_admin or user.is_maintenance_engineer):
+                logger.error(
+                    f"Użytkownik {user.username} nie ma uprawnień do potwierdzania alarmów")
+                return False
+
             alert.acknowledge(user)
 
             if comment:
@@ -63,6 +69,12 @@ class AlertManager:
         try:
             alert = Alert.objects.get(id=alert_id)
             user = User.objects.get(id=user_id)
+
+            # Sprawdź uprawnienia użytkownika
+            if not (user.is_building_admin or user.is_maintenance_engineer):
+                logger.error(
+                    f"Użytkownik {user.username} nie ma uprawnień do zamykania alarmów")
+                return False
 
             alert.close(user)
 
@@ -126,9 +138,15 @@ class MonitoringService:
 
     # todo: czy timestamp dodac jako timestamp_generated?
     @staticmethod
-    def create_alert(rule, value, timestamp):
+    def create_alert(rule, value, timestamp, user=None):
         """Utwórz alarm"""
         try:
+            # Sprawdź uprawnienia użytkownika jeśli podano
+            if user and not (user.is_building_admin or user.is_maintenance_engineer):
+                logger.error(
+                    f"Użytkownik {user.username} nie ma uprawnień do tworzenia alarmów")
+                return None
+
             alert = Alert.objects.create(
                 alert_rule=rule,
                 triggering_value=value,
