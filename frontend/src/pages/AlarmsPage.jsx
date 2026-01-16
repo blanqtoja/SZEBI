@@ -290,7 +290,7 @@ const AlarmsPage = () => {
                                 <tr>
                                     <td colSpan="8" className="table-empty">Ładowanie...</td>
                                 </tr>
-                            ) : rules.length === 0 ? (
+                            ) : alerts.length === 0 ? (
                                 <tr>
                                     <td colSpan="8" className="table-empty">Brak alarmów do wyświetlenia</td>
                                 </tr>
@@ -298,16 +298,16 @@ const AlarmsPage = () => {
                                 alerts.map(alert => (
                                     <tr key={alert.id}>
                                         {console.log(alert)}
-                                        <td>{alert.alert_rule ?? '-'}</td>
-                                        <td>{alert.alert_comment ?? '-'}</td>
+                                        <td>{alert.alert_rule?.name ?? '-'}</td>
+                                        <td>{alert.alert_comment?.text ?? '-'}</td>
                                         <td>{alert.triggering_value ?? '-'}</td>
                                         <td>{alert.timestamp_generated ?? '-'}</td>
                                         <td>{alert.timestamp_acknowledged ?? '-'}</td>
                                         <td>{alert.timestamp_closed ?? '-'}</td>
                                         <td>{alert.status ?? '-'}</td>
                                         <td>{alert.priority ?? '-'}</td>
-                                        <td>{alert.acknowledged_by ?? '-'}</td>
-                                        <td>{alert.closed_by ?? '-'}</td>
+                                        <td>{alert.acknowledged_by?.username ?? '-'}</td>
+                                        <td>{alert.closed_by?.username ?? '-'}</td>
                                         <td>
                                             <div className="table-actions">
                                                 <button
@@ -438,7 +438,7 @@ const AlarmsPage = () => {
                             <div className="form-group form-group-full">
                                 <label className="form-label">Reguła alarmu</label>
                                 <div style={{ padding: '8px 12px', background: '#f5f5f5', borderRadius: '6px' }}>
-                                    {selectedAlert.alert_rule || 'Brak nazwy'}
+                                    {selectedAlert.alert_rule?.name || 'Brak nazwy'}
                                 </div>
                             </div>
 

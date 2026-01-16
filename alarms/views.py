@@ -17,11 +17,16 @@ class AlertViewSet(viewsets.ModelViewSet):
 
     def list(self, request):
         """Lista alarmów"""
-        alerts = Alert.objects.select_related('alert_rule').all()
-        # todo: dodac serializer do json, na razie zwracane sa surowe dane
+        alerts = Alert.objects.select_related(
+            'alert_rule',
+            'alert_comment',
+            'acknowledged_by',
+            'closed_by'
+        ).all()
         # todo: mozna dodac stronicowanie
         # todo: filtrowanie alarmow
-        return Response({'alerts': list(alerts.values())})
+        serializer = self.get_serializer(alerts, many=True)
+        return Response({'alerts': serializer.data})
 
     def create(self, request):
         """Utwórz nowy alarm ręcznie"""
