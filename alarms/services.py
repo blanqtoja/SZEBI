@@ -12,10 +12,9 @@ from .models import (
     NotificationLog,
     NotificationStatus,
     ChannelType,
-    ChannelTypes,
-    NotificationPreference
+    ChannelTypes
 )
-from core.models import User
+from core.models import User, Role
 
 logger = logging.getLogger(__name__)
 
@@ -186,25 +185,39 @@ class NotificationService:
         users = NotificationService.get_recipients(alert)
 
         for user in users:
-            preferences = user.get_notification_preferences()
+            # Sprawdź czy użytkownik powinien otrzymać powiadomienie dla danego priorytetu
+            if NotificationService._should_notify_user(user, alert):
+                # todo: może wydajniej by było zbierać adresy email i potem wysłać jednego maila do wszystkich
+                NotificationService._send_email(user, alert)
+                NotificationService._send_webpush(user, alert)
 
-            for pref in preferences:
-                # Sprawdź poziom priorytetu
-                if NotificationService._check_priority(alert.priority, pref.min_priority_level):
-                    # todo: moze wydajniej by bylo zbierac adresy email i potem wyslac jednego maila do wsyzstkich
-                    if pref.enable_email:
-                        NotificationService._send_email(user, alert)
-                    if pref.enable_webpush:
-                        NotificationService._send_webpush(user, alert)
-
-    # todo: filtr po NotificationGroup?
-    # moze przeniesc logike fitru z send_alert_notification do get_recipients?
-    # od alertu -> alarm_rule -> czy dana grupa ma taki priorytet -> uzytkownicy z tej grupy
     @staticmethod
     def get_recipients(alert):
-        """Pobierz odbiorców powiadomienia dla alarmu"""
-        # Logika określania odbiorców (np. wszyscy aktywni użytkownicy)
-        return User.objects.filter(is_active=True)
+        """Pobierz odbiorców powiadomienia dla alarmu na podstawie priorytetu i roli"""
+        # Dla krytycznych alarmów - wszyscy aktywni użytkownicy
+        if alert.priority == AlertPriority.CRITICAL:
+            return User.objects.filter(is_active=True)
+
+        # Dla wysokiego priorytetu - Admin i Maintenance
+        if alert.priority == AlertPriority.HIGH:
+            return User.objects.filter(
+                is_active=True,
+                role__name__in=[Role.ADMIN, Role.MAINTENANCE]
+            )
+
+        # Dla średniego priorytetu - Admin, Maintenance i Energy Provider
+        if alert.priority == AlertPriority.MEDIUM:
+            return User.objects.filter(
+                is_active=True,
+                role__name__in=[Role.ADMIN,
+                                Role.MAINTENANCE, Role.ENERGY_PROVIDER]
+            )
+
+        # Dla niskiego priorytetu - tylko Admin
+        return User.objects.filter(
+            is_active=True,
+            role__name=Role.ADMIN
+        )
 
     @staticmethod
     def log_notification(user, alert, channel, status, error_message=''):
@@ -276,15 +289,28 @@ class NotificationService:
             logger.error(f"Błąd wysyłania WebPush: {error_msg}")
 
     @staticmethod
-    def _check_priority(alert_priority, min_priority):
-        """Sprawdź czy priorytet alarmu spełnia minimum"""
-        priority_levels = {
-            AlertPriority.LOW: 1,
-            AlertPriority.MEDIUM: 2,
-            AlertPriority.HIGH: 3,
-            AlertPriority.CRITICAL: 4
-        }
-        return priority_levels.get(alert_priority, 0) >= priority_levels.get(min_priority, 0)
+    def _should_notify_user(user, alert):
+        """Sprawdź czy użytkownik powinien otrzymać powiadomienie na podstawie roli i priorytetu alarmu"""
+        if not user.role:
+            return False
+
+        # Krytyczne alarmy - wszyscy
+        if alert.priority == AlertPriority.CRITICAL:
+            return True
+
+        # Wysokie alarmy - Admin i Maintenance
+        if alert.priority == AlertPriority.HIGH:
+            return user.role.name in [Role.ADMIN, Role.MAINTENANCE]
+
+        # Średnie alarmy - Admin, Maintenance i Energy Provider
+        if alert.priority == AlertPriority.MEDIUM:
+            return user.role.name in [Role.ADMIN, Role.MAINTENANCE, Role.ENERGY_PROVIDER]
+
+        # Niskie alarmy - tylko Admin
+        if alert.priority == AlertPriority.LOW:
+            return user.role.name == Role.ADMIN
+
+        return False
 
     @staticmethod
     def send_to_emergency_mode(alert):
