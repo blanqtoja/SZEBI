@@ -16,7 +16,7 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-from core.views import LoginView
+from core.views import LoginView, GetCSRFToken
 
 # ---- alarms router + mock endpoint (from alarms branch) ----
 from rest_framework import routers
@@ -28,7 +28,9 @@ import json
 router = routers.DefaultRouter()
 router.register(r'alerts', AlertViewSet, basename='alert')
 router.register(r'alert-rules', AlertRuleViewSet, basename='alert-rule')
-router.register(r'data-inspection', DataInspectionViewSet, basename='data-inspection')
+router.register(r'data-inspection', DataInspectionViewSet,
+                basename='data-inspection')
+
 
 @csrf_exempt
 def emergency_mode(request):
@@ -50,10 +52,12 @@ def emergency_mode(request):
         print(f"ERROR parsing alert: {e}")
         return JsonResponse({'error': str(e)}, status=400)
 
+
 # ---- urlpatterns merged from alarms + optimization + analysis ----
 urlpatterns = [
     path('admin/', admin.site.urls),
 
+    path('api/csrf/', GetCSRFToken.as_view(), name='csrf'),
     path('api/login/', LoginView.as_view(), name='login'),
 
     # optimization API
