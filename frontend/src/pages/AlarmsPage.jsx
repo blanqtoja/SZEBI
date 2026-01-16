@@ -3,6 +3,22 @@ import { Bell, Plus, AlertTriangle, Info, CheckCircle2, X, Trash2, SquarePen, XC
 
 const API_BASE_URL = 'http://localhost:8000';
 
+// Helper function to get CSRF token from cookies
+const getCookie = (name) => {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+};
+
 const AlarmsPage = () => {
     const [showAddRuleModal, setShowAddRuleModal] = useState(false);
     const [showAddAlertModal, setShowAddAlertModal] = useState(false);
@@ -86,10 +102,14 @@ const AlarmsPage = () => {
         if (!confirmed) return;
         setDeletingId(ruleId);
         try {
+            const csrftoken = getCookie('csrftoken');
             const response = await fetch(`${API_BASE_URL}/api/alert-rules/${ruleId}/`, {
                 method: 'DELETE',
                 credentials: 'include',
-                headers: { 'Content-Type': 'application/json' }
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrftoken
+                }
             });
 
             if (!response.ok) {
@@ -117,11 +137,15 @@ const AlarmsPage = () => {
         setAlertActionLoading(true);
         try {
             const body = alertComment ? { comment: alertComment } : {};
+            const csrftoken = getCookie('csrftoken');
             
             const response = await fetch(`${API_BASE_URL}/api/alerts/${selectedAlert.id}/acknowledge/`, {
                 method: 'POST',
                 credentials: 'include',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrftoken
+                },
                 body: JSON.stringify(body)
             });
 
@@ -147,11 +171,15 @@ const AlarmsPage = () => {
         setAlertActionLoading(true);
         try {
             const body = alertComment ? { comment: alertComment } : {};
+            const csrftoken = getCookie('csrftoken');
             
             const response = await fetch(`${API_BASE_URL}/api/alerts/${selectedAlert.id}/close/`, {
                 method: 'POST',
                 credentials: 'include',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrftoken
+                },
                 body: JSON.stringify(body)
             });
 
@@ -205,10 +233,14 @@ const AlarmsPage = () => {
                 comment: alertFormData.comment || undefined
             };
 
+            const csrftoken = getCookie('csrftoken');
             const response = await fetch(`${API_BASE_URL}/api/alerts/`, {
                 method: 'POST',
                 credentials: 'include',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrftoken
+                },
                 body: JSON.stringify(alertData)
             });
 
@@ -256,10 +288,14 @@ const AlarmsPage = () => {
                 priority: formData.priority
             };
 
+            const csrftoken = getCookie('csrftoken');
             const response = await fetch(`${API_BASE_URL}/api/alert-rules/`, {
                 method: 'POST',
                 credentials: 'include',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrftoken
+                },
                 body: JSON.stringify(ruleData)
             });
 
