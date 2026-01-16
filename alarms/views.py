@@ -23,6 +23,47 @@ class AlertViewSet(viewsets.ModelViewSet):
         # todo: filtrowanie alarmow
         return Response({'alerts': list(alerts.values())})
 
+    def create(self, request):
+        """Utwórz nowy alarm ręcznie"""
+        try:
+            rule_id = request.data.get('alert_rule_id')
+            triggering_value = request.data.get('triggering_value')
+            timestamp = request.data.get('timestamp', timezone.now())
+            comment = request.data.get('comment', None)
+
+            if not rule_id or triggering_value is None:
+                return Response(
+                    {'error': 'Wymagane pola: alert_rule_id, triggering_value'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            rule = AlertRule.objects.get(id=rule_id)
+            alert = MonitoringService.create_alert(
+                rule, triggering_value, timestamp, user=request.user)
+
+            if alert and comment:
+                from .models import AlertComment
+                alert_comment = AlertComment.objects.create(text=comment)
+                alert.alert_comment = alert_comment
+                alert.save()
+
+            if alert:
+                return Response({'id': alert.id, 'status': 'created'}, status=status.HTTP_201_CREATED)
+            return Response(
+                {'error': 'Nie można utworzyć alarmu'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        except AlertRule.DoesNotExist:
+            return Response(
+                {'error': 'Reguła nie istnieje'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        except Exception as e:
+            return Response(
+                {'error': f'Błąd podczas tworzenia alarmu: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
     @action(detail=True, methods=['post'])
     def acknowledge(self, request, pk=None):
         """Potwierdź alarm"""

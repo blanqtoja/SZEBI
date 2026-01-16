@@ -135,6 +135,24 @@ export async function fetchAlerts() {
 }
 
 /**
+ * Create a new alert manually
+ * @param {object} alertData - Alert data (alert_rule_id, triggering_value, timestamp)
+ * @returns {Promise<object>} - Created alert
+ */
+export async function createAlert(alertData) {
+    const response = await apiRequest('/api/alerts/', {
+        method: 'POST',
+        body: JSON.stringify(alertData)
+    });
+
+    if (!response.ok) {
+        throw new Error('Failed to create alert');
+    }
+
+    return response.json();
+}
+
+/**
  * Acknowledge an alert
  * @param {number} alertId - Alert ID
  * @param {string} comment - Optional comment

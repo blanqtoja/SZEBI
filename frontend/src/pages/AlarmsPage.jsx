@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { Bell, Plus, AlertTriangle, Info, CheckCircle2, X, Trash2, SquarePen, XCircle } from 'lucide-react';
-import { fetchAlertRules, createAlertRule, deleteAlertRule, fetchAlerts, acknowledgeAlert, closeAlert } from '../utils/apiClient';
+import { fetchAlertRules, createAlertRule, deleteAlertRule, fetchAlerts, acknowledgeAlert, closeAlert, createAlert } from '../utils/apiClient';
 
 const AlarmsPage = () => {
     const [showAddRuleModal, setShowAddRuleModal] = useState(false);
+    const [showAddAlertModal, setShowAddAlertModal] = useState(false);
     const [rules, setRules] = useState([]);
     const [alerts, setAlerts] = useState([]);
     const [rulesLoading, setRulesLoading] = useState(false);
@@ -14,6 +15,12 @@ const AlarmsPage = () => {
     const [selectedAlert, setSelectedAlert] = useState(null);
     const [alertComment, setAlertComment] = useState('');
     const [alertActionLoading, setAlertActionLoading] = useState(false);
+    const [alertFormData, setAlertFormData] = useState({
+        alert_rule_id: '',
+        triggering_value: '',
+        timestamp: '',
+        comment: ''
+    });
     const [formData, setFormData] = useState({
         name: '',
         target_metric: '',
@@ -122,6 +129,52 @@ const AlarmsPage = () => {
             ...prev,
             [name]: value
         }));
+    };
+
+    const handleAlertInputChange = (e) => {
+        const { name, value } = e.target;
+        setAlertFormData(prev => ({
+            ...prev,
+            [name]: value
+        }));
+    };
+
+    const handleAlertSubmit = async (e) => {
+        e.preventDefault();
+        setLoading(true);
+        
+        try {
+            const alertData = {
+                alert_rule_id: parseInt(alertFormData.alert_rule_id),
+                triggering_value: parseFloat(alertFormData.triggering_value),
+                timestamp: alertFormData.timestamp || undefined,
+                comment: alertFormData.comment || undefined
+            };
+
+            await createAlert(alertData);
+            
+            setNotification({
+                type: 'success',
+                message: 'Alarm został pomyślnie utworzony!'
+            });
+            setAlertFormData({
+                alert_rule_id: '',
+                triggering_value: '',
+                timestamp: '',
+                comment: ''
+            });
+            setShowAddAlertModal(false);
+            fetchAlertsData();
+        } catch (error) {
+            console.error(error);
+            setNotification({
+                type: 'error',
+                message: 'Nie udało się utworzyć alarmu. Spróbuj ponownie.'
+            });
+        } finally {
+            setLoading(false);
+            setTimeout(() => setNotification(null), 5000);
+        }
     };
 
     const handleSubmit = async (e) => {
@@ -281,6 +334,15 @@ const AlarmsPage = () => {
             >
                 <Plus size={20} />
                 Dodaj regułę
+            </button>
+
+            <button 
+                className="btn-add-rule"
+                onClick={() => setShowAddAlertModal(true)}
+                style={{ bottom: '90px' }}
+            >
+                <Plus size={20} />
+                Dodaj alarm
             </button>
             {/* List of rules */}
             <div className="rules-card">
@@ -623,6 +685,238 @@ const AlarmsPage = () => {
                                     disabled={loading}
                                 >
                                     {loading ? 'Tworzenie...' : 'Utwórz regułę'}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {/* Add Alert Modal */}
+            {showAddAlertModal && (
+                <div className="modal-overlay" onClick={() => setShowAddAlertModal(false)}>
+                    <div className="modal-container" onClick={(e) => e.stopPropagation()}>
+                        <div className="modal-header">
+                            <h2 className="modal-title">Dodaj nowy alarm</h2>
+                            <button 
+                                className="modal-close"
+                                onClick={() => setShowAddAlertModal(false)}
+                            >
+                                <X size={24} />
+                            </button>
+                        </div>
+
+                        <form onSubmit={handleAlertSubmit} className="rule-form">
+                            <div className="form-grid">
+                                {/* Alert Rule Selection */}
+                                <div className="form-group form-group-full">
+                                    <label htmlFor="alert_rule_id" className="form-label">
+                                        Reguła alarmu
+                                        <span className="required">*</span>
+                                    </label>
+                                    <select
+                                        id="alert_rule_id"
+                                        name="alert_rule_id"
+                                        className="form-select"
+                                        value={alertFormData.alert_rule_id}
+                                        onChange={handleAlertInputChange}
+                                        required
+                                    >
+                                        <option value="">Wybierz regułę...</option>
+                                        {rules.map(rule => (
+                                            <option key={rule.id} value={rule.id}>
+                                                {rule.name} ({rule.target_metric})
+                                            </option>
+                                        ))}
+                                    </select>
+                                    <p className="form-hint">
+                                        Wybierz która reguła została złamana
+                                    </p>
+                                </div>
+
+                                {/* Triggering Value */}
+                                <div className="form-group form-group-full">
+                                    <label htmlFor="triggering_value" className="form-label">
+                                        Wartość wyzwalająca
+                                        <span className="required">*</span>
+                                    </label>
+                                    <input
+                                        type="number"
+                                        id="triggering_value"
+                                        name="triggering_value"
+                                        className="form-input"
+                                        value={alertFormData.triggering_value}
+                                        onChange={handleAlertInputChange}
+                                        placeholder="0.0"
+                                        step="0.01"
+                                        required
+                                    />
+                                    <p className="form-hint">
+                                        Wartość metryki, która spowodowała alarm
+                                    </p>
+                                </div>
+
+                                {/* Timestamp (optional) */}
+                                <div className="form-group form-group-full">
+                                    <label htmlFor="timestamp" className="form-label">
+                                        Znacznik czasu (opcjonalnie)
+                                    </label>
+                                    <input
+                                        type="datetime-local"
+                                        id="timestamp"
+                                        name="timestamp"
+                                        className="form-input"
+                                        value={alertFormData.timestamp}
+                                        onChange={handleAlertInputChange}
+                                    />
+                                    <p className="form-hint">
+                                        Jeśli puste, użyte zostanie bieżące time
+                                    </p>
+                                </div>
+                            </div>
+
+                            {/* Form Actions */}
+                            <div className="form-actions">
+                                <button
+                                    type="button"
+                                    className="btn-secondary"
+                                    onClick={() => setShowAddAlertModal(false)}
+                                    disabled={loading}
+                                >
+                                    Anuluj
+                                </button>
+                                <button
+                                    type="submit"
+                                    className="btn-primary"
+                                    disabled={loading}
+                                >
+                                    {loading ? 'Tworzenie...' : 'Utwórz alarm'}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {/* Add Alert Modal */}
+            {showAddAlertModal && (
+                <div className="modal-overlay" onClick={() => setShowAddAlertModal(false)}>
+                    <div className="modal-container" onClick={(e) => e.stopPropagation()}>
+                        <div className="modal-header">
+                            <h2 className="modal-title">Dodaj nowy alarm</h2>
+                            <button 
+                                className="modal-close"
+                                onClick={() => setShowAddAlertModal(false)}
+                            >
+                                <X size={24} />
+                            </button>
+                        </div>
+
+                        <form onSubmit={handleAlertSubmit} className="rule-form">
+                            <div className="form-grid">
+                                {/* Alert Rule Selection */}
+                                <div className="form-group form-group-full">
+                                    <label htmlFor="alert_rule_id" className="form-label">
+                                        Reguła alarmu
+                                        <span className="required">*</span>
+                                    </label>
+                                    <select
+                                        id="alert_rule_id"
+                                        name="alert_rule_id"
+                                        className="form-select"
+                                        value={alertFormData.alert_rule_id}
+                                        onChange={handleAlertInputChange}
+                                        required
+                                    >
+                                        <option value="">Wybierz regułę...</option>
+                                        {rules.map(rule => (
+                                            <option key={rule.id} value={rule.id}>
+                                                {rule.name} ({rule.target_metric})
+                                            </option>
+                                        ))}
+                                    </select>
+                                    <p className="form-hint">
+                                        Wybierz która reguła została złamana
+                                    </p>
+                                </div>
+
+                                {/* Triggering Value */}
+                                <div className="form-group form-group-full">
+                                    <label htmlFor="triggering_value" className="form-label">
+                                        Wartość wyzwalająca
+                                        <span className="required">*</span>
+                                    </label>
+                                    <input
+                                        type="number"
+                                        id="triggering_value"
+                                        name="triggering_value"
+                                        className="form-input"
+                                        value={alertFormData.triggering_value}
+                                        onChange={handleAlertInputChange}
+                                        placeholder="0.0"
+                                        step="0.01"
+                                        required
+                                    />
+                                    <p className="form-hint">
+                                        Wartość metryki, która spowodowała alarm
+                                    </p>
+                                </div>
+
+                                {/* Timestamp (optional) */}
+                                <div className="form-group form-group-full">
+                                    <label htmlFor="timestamp" className="form-label">
+                                        Znacznik czasu (opcjonalnie)
+                                    </label>
+                                    <input
+                                        type="datetime-local"
+                                        id="timestamp"
+                                        name="timestamp"
+                                        className="form-input"
+                                        value={alertFormData.timestamp}
+                                        onChange={handleAlertInputChange}
+                                    />
+                                    <p className="form-hint">
+                                        Jeśli puste, użyte zostanie bieżący czas
+                                    </p>
+                                </div>
+
+                                {/* Comment (optional) */}
+                                <div className="form-group form-group-full">
+                                    <label htmlFor="comment" className="form-label">
+                                        Komentarz (opcjonalnie)
+                                    </label>
+                                    <textarea
+                                        id="comment"
+                                        name="comment"
+                                        className="form-input"
+                                        value={alertFormData.comment}
+                                        onChange={handleAlertInputChange}
+                                        placeholder="Dodaj komentarz do alarmu..."
+                                        rows="4"
+                                        style={{ resize: 'vertical' }}
+                                    />
+                                    <p className="form-hint">
+                                        Dodatkowe informacje o alarmie
+                                    </p>
+                                </div>
+                            </div>
+
+                            {/* Form Actions */}
+                            <div className="form-actions">
+                                <button
+                                    type="button"
+                                    className="btn-secondary"
+                                    onClick={() => setShowAddAlertModal(false)}
+                                    disabled={loading}
+                                >
+                                    Anuluj
+                                </button>
+                                <button
+                                    type="submit"
+                                    className="btn-primary"
+                                    disabled={loading}
+                                >
+                                    {loading ? 'Tworzenie...' : 'Utwórz alarm'}
                                 </button>
                             </div>
                         </form>
