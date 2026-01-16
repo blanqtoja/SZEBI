@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Bell, Plus, AlertTriangle, Info, CheckCircle2, X, Trash2, SquarePen, XCircle } from 'lucide-react';
-import { fetchAlertRules, createAlertRule, deleteAlertRule, fetchAlerts, acknowledgeAlert, closeAlert, createAlert } from '../utils/apiClient';
+
+const API_BASE_URL = 'http://localhost:8000';
 
 const AlarmsPage = () => {
     const [showAddRuleModal, setShowAddRuleModal] = useState(false);
@@ -36,8 +37,18 @@ const AlarmsPage = () => {
     const fetchRules = async () => {
         setRulesLoading(true);
         try {
-            const data = await fetchAlertRules();
-            setRules(data);
+            const response = await fetch(`${API_BASE_URL}/api/alert-rules/`, {
+                method: 'GET',
+                credentials: 'include',
+                headers: { 'Content-Type': 'application/json' }
+            });
+            
+            if (!response.ok) {
+                throw new Error('Failed to fetch alert rules');
+            }
+
+            const data = await response.json();
+            setRules(Array.isArray(data) ? data : data.results || data.alerts || []);
         } catch (error) {
             setNotification({ type: 'error', message: 'Nie udało się pobrać reguł.' });
         } finally {
@@ -50,8 +61,18 @@ const AlarmsPage = () => {
     const fetchAlertsData = async () => {
         setAlertsLoading(true);
         try {
-            const data = await fetchAlerts();
-            setAlerts(data);
+            const response = await fetch(`${API_BASE_URL}/api/alerts/`, {
+                method: 'GET',
+                credentials: 'include',
+                headers: { 'Content-Type': 'application/json' }
+            });
+            
+            if (!response.ok) {
+                throw new Error('Failed to fetch alerts');
+            }
+
+            const data = await response.json();
+            setAlerts(Array.isArray(data) ? data : data.alerts || []);
         } catch (error) {
             setNotification({ type: 'error', message: 'Nie udało się pobrać alarmów.' });
         } finally {
@@ -65,7 +86,16 @@ const AlarmsPage = () => {
         if (!confirmed) return;
         setDeletingId(ruleId);
         try {
-            await deleteAlertRule(ruleId);
+            const response = await fetch(`${API_BASE_URL}/api/alert-rules/${ruleId}/`, {
+                method: 'DELETE',
+                credentials: 'include',
+                headers: { 'Content-Type': 'application/json' }
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to delete alert rule');
+            }
+
             setNotification({ type: 'success', message: 'Reguła została usunięta.' });
             fetchRules();
         } catch (error) {
@@ -86,7 +116,19 @@ const AlarmsPage = () => {
         if (!selectedAlert) return;
         setAlertActionLoading(true);
         try {
-            await acknowledgeAlert(selectedAlert.id, alertComment || null);
+            const body = alertComment ? { comment: alertComment } : {};
+            
+            const response = await fetch(`${API_BASE_URL}/api/alerts/${selectedAlert.id}/acknowledge/`, {
+                method: 'POST',
+                credentials: 'include',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to acknowledge alert');
+            }
+
             setNotification({ type: 'success', message: 'Alarm potwierdzony' });
             setShowAlertActionModal(false);
             setSelectedAlert(null);
@@ -104,7 +146,19 @@ const AlarmsPage = () => {
         if (!selectedAlert) return;
         setAlertActionLoading(true);
         try {
-            await closeAlert(selectedAlert.id, alertComment || null);
+            const body = alertComment ? { comment: alertComment } : {};
+            
+            const response = await fetch(`${API_BASE_URL}/api/alerts/${selectedAlert.id}/close/`, {
+                method: 'POST',
+                credentials: 'include',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to close alert');
+            }
+
             setNotification({ type: 'success', message: 'Alarm zamknięty' });
             setShowAlertActionModal(false);
             setSelectedAlert(null);
@@ -151,7 +205,16 @@ const AlarmsPage = () => {
                 comment: alertFormData.comment || undefined
             };
 
-            await createAlert(alertData);
+            const response = await fetch(`${API_BASE_URL}/api/alerts/`, {
+                method: 'POST',
+                credentials: 'include',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(alertData)
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to create alert');
+            }
             
             setNotification({
                 type: 'success',
@@ -193,7 +256,16 @@ const AlarmsPage = () => {
                 priority: formData.priority
             };
 
-            await createAlertRule(ruleData);
+            const response = await fetch(`${API_BASE_URL}/api/alert-rules/`, {
+                method: 'POST',
+                credentials: 'include',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(ruleData)
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to create alert rule');
+            }
             
             setNotification({
                 type: 'success',
@@ -263,7 +335,7 @@ const AlarmsPage = () => {
             <div className="rules-card">
                 <div className="rules-card-header">
                     <h3>Lista alarmów</h3>
-                    <button className="btn-secondary" onClick={fetchAlerts} disabled={alertsLoading}>
+                    <button className="btn-secondary" onClick={fetchAlertsData} disabled={alertsLoading}>
                         {alertsLoading ? 'Odświeżanie...' : 'Odśwież'}
                     </button>
                 </div>
