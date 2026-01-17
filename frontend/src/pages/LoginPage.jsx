@@ -1,21 +1,35 @@
 import React, { useState } from 'react';
 import { User, Lock, LogIn, Rocket, Zap, BarChart, Database, TrendingUp } from 'lucide-react';
+import { getCookie } from '../utils/csrf';
 
 const LoginPage = ({ onLoginSuccess }) => {
     const [credentials, setCredentials] = useState({ username: '', password: '' });
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        const response = await fetch('http://localhost:8000/api/login/', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(credentials),
-        });
-        if (response.ok) {
-            const data = await response.json();
-            onLoginSuccess(data.user);
-        } else {
-            alert("Błąd logowania!");
+
+        const csrftoken = getCookie('csrftoken');
+
+        try {
+            const response = await fetch('http://localhost:8000/api/login/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrftoken,
+                },
+                credentials: 'include',
+                body: JSON.stringify(credentials),
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                onLoginSuccess(data.user);
+            } else {
+                alert("Błąd logowania!");
+            }
+        } catch (error) {
+            console.error("Login error:", error);
+            alert("Błąd połączenia z serwerem.")
         }
     };
 

@@ -16,7 +16,7 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-from core.views import LoginView
+from core.views import LoginView, LogoutView
 
 # ---- alarms router + mock endpoint (from alarms branch) ----
 from rest_framework import routers
@@ -54,13 +54,14 @@ urlpatterns = [
     path('admin/', admin.site.urls),
 
     path('api/login/', LoginView.as_view(), name='login'),
+    path('api/logout/', LogoutView.as_view(), name='logout'),
 
     # optimization API
     path('api/optimization/', include('optimization.api.urls')),
 
     # alarms API
     path('api/', include(router.urls)),
-    path('api/optimalization/alarm/', emergency_mode),
+    path('api/optimization/alarm/', emergency_mode),
 
     # analysis module
     path("analysis/", include("analysis.urls")),
