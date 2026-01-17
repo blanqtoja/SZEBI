@@ -1,50 +1,35 @@
 import React, { useState, useEffect } from 'react';
 import { User, Lock, LogIn, Rocket, Zap, BarChart, Database, TrendingUp } from 'lucide-react';
-
-// Helper function to get CSRF token from cookies
-const getCookie = (name) => {
-    let cookieValue = null;
-    if (document.cookie && document.cookie !== '') {
-        const cookies = document.cookie.split(';');
-        for (let i = 0; i < cookies.length; i++) {
-            const cookie = cookies[i].trim();
-            if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                break;
-            }
-        }
-    }
-    return cookieValue;
-};
+import { getCookie } from '../utils/csrf';
 
 const LoginPage = ({ onLoginSuccess }) => {
     const [credentials, setCredentials] = useState({ username: '', password: '' });
 
-    // Fetch CSRF token on component mount
-    useEffect(() => {
-        fetch('http://localhost:8000/api/csrf/', {
-            method: 'GET',
-            credentials: 'include',
-        });
-    }, []);
-
     const handleSubmit = async (e) => {
         e.preventDefault();
+
         const csrftoken = getCookie('csrftoken');
-        const response = await fetch('http://localhost:8000/api/login/', {
-            method: 'POST',
-            credentials: 'include',
-            headers: { 
-                'Content-Type': 'application/json',
-                'X-CSRFToken': csrftoken
-            },
-            body: JSON.stringify(credentials),
-        });
-        if (response.ok) {
-            const data = await response.json();
-            onLoginSuccess(data.user);
-        } else {
-            alert("Błąd logowania!");
+
+        try {
+            const response = await fetch('http://localhost:8000/api/login/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrftoken,
+                },
+                credentials: 'include',
+                body: JSON.stringify(credentials),
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                onLoginSuccess(data.user);
+            } else {
+                alert("Błąd logowania!");
+            }
+        } catch (error) {
+            console.error("Login error:", error);
+            alert("Błąd połączenia z serwerem.")
         }
     };
 
