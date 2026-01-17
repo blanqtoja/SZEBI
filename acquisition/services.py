@@ -1,4 +1,6 @@
 import datetime
+import requests
+import os
 from typing import List, Optional, Dict, Any
 
 from .logic.database_manager import DatabaseManager
@@ -7,6 +9,35 @@ from .models import Measurement, DataLog
 class AcquisitionDataService:
     def __init__(self, db_manager: DatabaseManager):
         self.db_manager = db_manager
+        # self.alarms_url = "http://localhost:8000/api/data-inspection/check_rules/"
+        self.alarms_url = os.getenv('INSPECTION_API_URL', "http://localhost:8000/api/data-inspection/check_rules/")
+
+    def post_to_alarms(self, measurement: Measurement):
+
+        metric_name = measurement.sensor.type.name
+
+        # payload = {
+        #     "metric_name": metric_name,
+        #     "value": measurement.value,
+        #     "timestamp": measurement.timestamp.isoformat()
+        # }
+
+        payload = {
+            "metric_name": metric_name,
+            "value": measurement.value,
+            "timestamp": measurement.timestamp.isoformat(),
+            "details": {
+                "sensor_id": measurement.sensor.id,
+                "room": measurement.sensor.location.room,
+                "status": measurement.status
+            }
+        }
+
+        try:
+            response = requests.post(self.alarms_url, json=payload, timeout=5)
+            response.raise_for_status()
+        except requests.exceptions.RequestException as e:
+            print(f"Błąd wysyłki do alarmów: {e}")
 
     def get_measurements_by_time_range(
         self,
@@ -20,7 +51,7 @@ class AcquisitionDataService:
         """
         return self.db_manager.get_measurements(sensor_id, start_time, end_time)
 
-def get_latest_measurement(self, sensor_id: int) -> Optional[Measurement]:
+    def get_latest_measurement(self, sensor_id: int) -> Optional[Measurement]:
         """
         Pobiera najnowszy, pojedynczy pomiar dla czujnika, niezależnie od tego, kiedy wpłynął.
         """
@@ -46,7 +77,7 @@ def get_latest_measurement(self, sensor_id: int) -> Optional[Measurement]:
             metric: Optional[str] = None,
             start_time: Optional[datetime.datetime] = None,
             end_time: Optional[datetime.datetime] = None,
-    ) -> List[Dict[str, Any]]:
+    ) -> List[Measurement]:
         """
         [API Read Method 5] Udostępnia dane z zaawansowanym filtrowaniem. Umożliwia filtrowanie po lokalizacji (room)
         i typie sensora.

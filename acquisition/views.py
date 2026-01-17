@@ -22,4 +22,4 @@ def control_panel(request):
         'status': status,
         'status_class': status_class
     }
-    return render(request, 'acquisition/control_panel.html', context)
+    return render(request, 'admin/acquisition/control_panel.html', context)
