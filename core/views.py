@@ -5,14 +5,6 @@ from rest_framework import status, permissions
 from .serializers import UserSerializer
 
 
-@method_decorator(ensure_csrf_cookie, name='dispatch')
-class GetCSRFToken(APIView):
-    permission_classes = [permissions.AllowAny]
-
-    def get(self, request):
-        return Response({'detail': 'CSRF cookie set'})
-
-
 class LoginView(APIView):
     permission_classes = [permissions.AllowAny]
 
