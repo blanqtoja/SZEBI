@@ -1,10 +1,11 @@
 from typing import Dict
+
+from ..logic.database_manager import DatabaseManager
 from ..models import Measurement, DataLog, DataLogLevel
 
 
 class Deduplicator:
-    def __init__(self, db_manager):
-        # self.recent_records: Dict[int, Tuple] = {}
+    def __init__(self, db_manager: DatabaseManager):
         self.recent_records: Dict[int, str] = {}
         self.db_manager = db_manager
 

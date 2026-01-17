@@ -25,13 +25,33 @@ class HandleData:
                                 topic=topic, raw_message=raw_message)
                 return None
 
-            # Parsowanie danych
-            parts = topic.split("/")
-            if len(parts) < 4:
+            # # Parsowanie danych
+            # parts = topic.split("/")
+            # if len(parts) < 4:
+            #     return None
+            #
+            # env_uuid = parts[1]
+            # metric_name = parts[3]
+
+            # --- obsługa różnych topiców ---
+            if topic.startswith("szebi/status"):
+                # dla statusu logujemy konsumpcję i ładowanie
+                consumption_mode = data.get("consumption_mode")
+                charging_mode = data.get("charging_mode")
+                self._log_error(f"System status: consumption={consumption_mode}, charging={charging_mode}",
+                                level=DataLogLevel.INFO, raw_message=raw_message)
                 return None
 
-            env_uuid = parts[1]
-            metric_name = parts[3]
+            # Weather: szebi/weather/<uuid>/<metryka>
+            elif topic.startswith("szebi/weather/") or topic.startswith("szebi/device/state/"):
+                parts = topic.split("/")
+                if len(parts) < 4:
+                    return None
+                env_uuid = parts[2]  # uuid pogody lub urządzenia
+                metric_name = data.get("metric_name") or "is_active"
+            else:
+                self._log_error(f"Nieznany topic: {topic}", level=DataLogLevel.WARNING, raw_message=raw_message)
+                return None
 
             # Konwersja surowych danych na obiekt modelu
             measurement = self._convert_raw_to_measurement(env_uuid, metric_name, data, topic)
@@ -39,7 +59,7 @@ class HandleData:
                 return None
 
             # Walidacja
-            is_valid = self.validator.validate(measurement)
+            is_valid = self.validator.validate(measurement, topic=topic, raw_message=raw_message)
             if not is_valid:
                 measurement.status = MeasurementStatus.ERROR
                 self._log_error(f"Wartość {measurement.value} poza zakresem dla {metric_name}",

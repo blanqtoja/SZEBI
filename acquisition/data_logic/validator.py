@@ -1,7 +1,8 @@
+from ..logic.database_manager import DatabaseManager
 from ..models import Measurement, DataLog, DataLogLevel
 
 class Validator:
-    def __init__(self, db_manager):
+    def __init__(self, db_manager: DatabaseManager):
         self.db_manager = db_manager
 
     def validate(self, data: Measurement, topic: str = None, raw_message: str = None) -> bool:

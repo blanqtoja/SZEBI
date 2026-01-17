@@ -122,9 +122,9 @@ def _acquisition_loop():
     try:
         # Inicjalizacja komponentów
         db_manager = DatabaseManager()
-        validator = Validator()
-        deduplicator = Deduplicator()
-        transformer = Transformer()
+        validator = Validator(db_manager)
+        deduplicator = Deduplicator(db_manager)
+        transformer = Transformer(db_manager)
         data_handler = HandleData(db_manager, validator, deduplicator, transformer)
         acquisition_service = AcquisitionDataService(db_manager)
 
