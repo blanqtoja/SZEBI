@@ -48,6 +48,9 @@ const AlarmsPage = () => {
     const [selectedCommentAlert, setSelectedCommentAlert] = useState(null);
     const [alertComment, setAlertComment] = useState('');
     const [alertActionLoading, setAlertActionLoading] = useState(false);
+    const [isAddingComment, setIsAddingComment] = useState(false);
+    const [newCommentText, setNewCommentText] = useState('');
+    const [commentUpdateLoading, setCommentUpdateLoading] = useState(false);
     const [alertFormData, setAlertFormData] = useState({
         alert_rule_id: '',
         triggering_value: '',
@@ -150,7 +153,55 @@ const AlarmsPage = () => {
 
     const openCommentModal = (alert) => {
         setSelectedCommentAlert(alert);
+        setIsAddingComment(false);
+        setNewCommentText('');
         setShowCommentModal(true);
+    };
+
+    const handleAddComment = async () => {
+        if (!selectedCommentAlert || !newCommentText.trim()) return;
+        setCommentUpdateLoading(true);
+        try {
+            const csrftoken = getCookie('csrftoken');
+            const existingComment = selectedCommentAlert.alert_comment?.text || '';
+            const separator = existingComment ? '\n\n---\n\n' : '';
+            const updatedComment = existingComment + separator + newCommentText;
+            
+            const response = await fetch(`${API_BASE_URL}/api/alerts/${selectedCommentAlert.id}/`, {
+                method: 'PATCH',
+                credentials: 'include',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrftoken
+                },
+                body: JSON.stringify({ 
+                    comment: updatedComment 
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to add comment');
+            }
+
+            setNotification({ type: 'success', message: 'Komentarz dodany' });
+            setIsAddingComment(false);
+            setNewCommentText('');
+            fetchAlertsData();
+            
+            // Update local state
+            setSelectedCommentAlert({
+                ...selectedCommentAlert,
+                alert_comment: {
+                    ...selectedCommentAlert.alert_comment,
+                    text: updatedComment
+                }
+            });
+        } catch (error) {
+            setNotification({ type: 'error', message: 'Nie udało się dodać komentarza' });
+        } finally {
+            setCommentUpdateLoading(false);
+            setTimeout(() => setNotification(null), 4000);
+        }
     };
 
     const handleAcknowledgeAlert = async () => {
@@ -1088,7 +1139,7 @@ const AlarmsPage = () => {
                             </div>
 
                             <div className="form-group form-group-full">
-                                <label className="form-label">Komentarz</label>
+                                <label className="form-label">Istniejący komentarz</label>
                                 <div style={{ 
                                     padding: '12px', 
                                     background: 'rgba(255, 255, 255, 0.05)', 
@@ -1096,11 +1147,26 @@ const AlarmsPage = () => {
                                     borderRadius: '6px',
                                     minHeight: '100px',
                                     whiteSpace: 'pre-wrap',
-                                    wordWrap: 'break-word'
+                                    wordWrap: 'break-word',
+                                    opacity: 0.8
                                 }}>
-                                    {selectedCommentAlert.alert_comment?.text || '-'}
+                                    {selectedCommentAlert.alert_comment?.text || 'Brak komentarza'}
                                 </div>
                             </div>
+
+                            {isAddingComment && (
+                                <div className="form-group form-group-full">
+                                    <label className="form-label">Dodaj nową część komentarza</label>
+                                    <textarea
+                                        className="form-input"
+                                        value={newCommentText}
+                                        onChange={(e) => setNewCommentText(e.target.value)}
+                                        placeholder="Wpisz nowy fragment komentarza..."
+                                        rows="6"
+                                        style={{ resize: 'vertical' }}
+                                    />
+                                </div>
+                            )}
 
                             <div className="form-group form-group-full">
                                 <label className="form-label">Data dodania komentarza</label>
@@ -1110,13 +1176,47 @@ const AlarmsPage = () => {
                             </div>
 
                             <div className="form-actions">
-                                <button
-                                    type="button"
-                                    className="btn-primary"
-                                    onClick={() => setShowCommentModal(false)}
-                                >
-                                    Zamknij
-                                </button>
+                                {!isAddingComment ? (
+                                    <>
+                                        <button
+                                            type="button"
+                                            className="btn-secondary"
+                                            onClick={() => setIsAddingComment(true)}
+                                        >
+                                            <Plus size={16} style={{ marginRight: '8px' }} />
+                                            Dodaj komentarz
+                                        </button>
+                                        <button
+                                            type="button"
+                                            className="btn-primary"
+                                            onClick={() => setShowCommentModal(false)}
+                                        >
+                                            Zamknij
+                                        </button>
+                                    </>
+                                ) : (
+                                    <>
+                                        <button
+                                            type="button"
+                                            className="btn-secondary"
+                                            onClick={() => {
+                                                setIsAddingComment(false);
+                                                setNewCommentText('');
+                                            }}
+                                            disabled={commentUpdateLoading}
+                                        >
+                                            Anuluj
+                                        </button>
+                                        <button
+                                            type="button"
+                                            className="btn-primary"
+                                            onClick={handleAddComment}
+                                            disabled={commentUpdateLoading || !newCommentText.trim()}
+                                        >
+                                            {commentUpdateLoading ? 'Zapisywanie...' : 'Zapisz'}
+                                        </button>
+                                    </>
+                                )}
                             </div>
                         </div>
                     </div>
