@@ -556,17 +556,17 @@ const AlarmsPage = () => {
                         <table className="rules-table">
                             <thead>
                                 <tr>
-                                    <th>Zasada</th>
-                                    <th>Komentarz</th>
-                                    <th>triggering value</th>
-                                    <th>generated at</th>
-                                    <th>ack at</th>
-                                    <th>closed at</th>
-                                    <th>status</th>
-                                    <th>priority</th>
-                                    <th>ack by</th>
-                                    <th>closed by</th>
-                                    <th>Akcje</th>
+                                    <th>Rule</th>
+                                    <th>Comment</th>
+                                    <th>Triggering Value</th>
+                                    <th>Generated At</th>
+                                    <th>Acknowledged At</th>
+                                    <th>Closed At</th>
+                                    <th>Status</th>
+                                    <th>Priority</th>
+                                    <th>Acknowledged By</th>
+                                    <th>Closed By</th>
+                                    <th>Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -606,7 +606,7 @@ const AlarmsPage = () => {
                                                     <button
                                                         className="btn-ghost-edit"
                                                         onClick={() => openCommentModal(alert)}
-                                                        title="Pokaż szczegóły"
+                                                        title="Show details"
                                                     >
                                                         <Info size={16} />
                                                     </button>
@@ -784,7 +784,7 @@ const AlarmsPage = () => {
                                     onClick={() => setShowAlertActionModal(false)}
                                     disabled={alertActionLoading}
                                 >
-                                    Anuluj
+                                    Cancel
                                 </button>
                                 
                                 {selectedAlert.status === 'NEW' && (
@@ -835,7 +835,7 @@ const AlarmsPage = () => {
                                 {/* Rule Name */}
                                 <div className="form-group form-group-full">
                                     <label htmlFor="name" className="form-label">
-                                        Nazwa reguły
+                                        Rule Name
                                         <span className="required">*</span>
                                     </label>
                                     <input
@@ -845,7 +845,7 @@ const AlarmsPage = () => {
                                         className="form-input"
                                         value={formData.name}
                                         onChange={handleInputChange}
-                                        placeholder="np. Wysokie zużycie energii"
+                                        placeholder="e.g. High energy usage"
                                         required
                                     />
                                 </div>
@@ -853,7 +853,7 @@ const AlarmsPage = () => {
                                 {/* Target Metric */}
                                 <div className="form-group form-group-full">
                                     <label htmlFor="target_metric" className="form-label">
-                                        Metryka docelowa
+                                        Target Metric
                                         <span className="required">*</span>
                                     </label>
                                     <input
@@ -863,11 +863,11 @@ const AlarmsPage = () => {
                                         className="form-input"
                                         value={formData.target_metric}
                                         onChange={handleInputChange}
-                                        placeholder="np. power_consumption"
+                                        placeholder="e.g. power_consumption"
                                         required
                                     />
                                     <p className="form-hint">
-                                        Nazwa metryki, która będzie monitorowana
+                                        Name of the metric to monitor
                                     </p>
                                 </div>
 
@@ -885,16 +885,16 @@ const AlarmsPage = () => {
                                         onChange={handleInputChange}
                                         required
                                     >
-                                        <option value="GREATER_THAN">Większe niż</option>
-                                        <option value="LESS_THAN">Mniejsze niż</option>
-                                        <option value="EQUALS">Równe</option>
+                                        <option value="GREATER_THAN">Greater than</option>
+                                        <option value="LESS_THAN">Less than</option>
+                                        <option value="EQUALS">Equals</option>
                                     </select>
                                 </div>
 
                                 {/* Priority */}
                                 <div className="form-group">
                                     <label htmlFor="priority" className="form-label">
-                                        Priorytet
+                                        Priority
                                         <span className="required">*</span>
                                     </label>
                                     <select
@@ -905,17 +905,17 @@ const AlarmsPage = () => {
                                         onChange={handleInputChange}
                                         required
                                     >
-                                        <option value="LOW">Niski</option>
-                                        <option value="MEDIUM">Średni</option>
-                                        <option value="HIGH">Wysoki</option>
-                                        <option value="CRITICAL">Krytyczny</option>
+                                        <option value="LOW">Low</option>
+                                        <option value="MEDIUM">Medium</option>
+                                        <option value="HIGH">High</option>
+                                        <option value="CRITICAL">Critical</option>
                                     </select>
                                 </div>
 
                                 {/* Threshold Min */}
                                 <div className="form-group">
                                     <label htmlFor="threshold_min" className="form-label">
-                                        Próg minimalny
+                                        Minimum Threshold
                                     </label>
                                     <input
                                         type="number"
@@ -928,14 +928,14 @@ const AlarmsPage = () => {
                                         step="0.01"
                                     />
                                     <p className="form-hint">
-                                        Używane dla operatora "mniejsze niż" lub "równe"
+                                        Used for the "less than" or "equals" operators
                                     </p>
                                 </div>
 
                                 {/* Threshold Max */}
                                 <div className="form-group">
                                     <label htmlFor="threshold_max" className="form-label">
-                                        Próg maksymalny
+                                        Maximum Threshold
                                     </label>
                                     <input
                                         type="number"
@@ -948,14 +948,14 @@ const AlarmsPage = () => {
                                         step="0.01"
                                     />
                                     <p className="form-hint">
-                                        Używane dla operatora "większe niż"
+                                        Used for the "greater than" operator
                                     </p>
                                 </div>
 
                                 {/* Duration */}
                                 <div className="form-group form-group-full">
                                     <label htmlFor="duration_seconds" className="form-label">
-                                        Czas trwania (sekundy)
+                                        Duration (seconds)
                                     </label>
                                     <input
                                         type="number"
@@ -968,7 +968,7 @@ const AlarmsPage = () => {
                                         min="0"
                                     />
                                     <p className="form-hint">
-                                        Jak długo warunek musi być spełniony przed wyzwoleniem alarmu
+                                        How long the condition must be met before triggering an alert
                                     </p>
                                 </div>
                             </div>
@@ -981,14 +981,14 @@ const AlarmsPage = () => {
                                     onClick={() => setShowAddRuleModal(false)}
                                     disabled={loading}
                                 >
-                                    Anuluj
+                                    Cancel
                                 </button>
                                 <button
                                     type="submit"
                                     className="btn-primary"
                                     disabled={loading}
                                 >
-                                    {loading ? 'Tworzenie...' : 'Utwórz regułę'}
+                                    {loading ? 'Creating...' : 'Create Rule'}
                                 </button>
                             </div>
                         </form>
@@ -1001,7 +1001,7 @@ const AlarmsPage = () => {
                 <div className="modal-overlay" onClick={() => setShowAddAlertModal(false)}>
                     <div className="modal-container" onClick={(e) => e.stopPropagation()}>
                         <div className="modal-header">
-                            <h2 className="modal-title">Dodaj nowy alarm</h2>
+                            <h2 className="modal-title">Add New Alert</h2>
                             <button 
                                 className="modal-close"
                                 onClick={() => setShowAddAlertModal(false)}
@@ -1015,7 +1015,7 @@ const AlarmsPage = () => {
                                 {/* Alert Rule Selection */}
                                 <div className="form-group form-group-full">
                                     <label htmlFor="alert_rule_id" className="form-label">
-                                        Reguła alarmu
+                                        Alert Rule
                                         <span className="required">*</span>
                                     </label>
                                     <select
@@ -1026,7 +1026,7 @@ const AlarmsPage = () => {
                                         onChange={handleAlertInputChange}
                                         required
                                     >
-                                        <option value="">Wybierz regułę...</option>
+                                        <option value="">Select a rule...</option>
                                         {rules.map(rule => (
                                             <option key={rule.id} value={rule.id}>
                                                 {rule.name} ({rule.target_metric})
@@ -1034,14 +1034,14 @@ const AlarmsPage = () => {
                                         ))}
                                     </select>
                                     <p className="form-hint">
-                                        Wybierz która reguła została złamana
+                                        Select which rule was violated
                                     </p>
                                 </div>
 
                                 {/* Triggering Value */}
                                 <div className="form-group form-group-full">
                                     <label htmlFor="triggering_value" className="form-label">
-                                        Wartość wyzwalająca
+                                        Triggering Value
                                         <span className="required">*</span>
                                     </label>
                                     <input
@@ -1056,14 +1056,14 @@ const AlarmsPage = () => {
                                         required
                                     />
                                     <p className="form-hint">
-                                        Wartość metryki, która spowodowała alarm
+                                        Metric value that triggered the alert
                                     </p>
                                 </div>
 
                                 {/* Timestamp (optional) */}
                                 <div className="form-group form-group-full">
                                     <label htmlFor="timestamp" className="form-label">
-                                        Znacznik czasu (opcjonalnie)
+                                        Timestamp (optional)
                                     </label>
                                     <input
                                         type="datetime-local"
@@ -1074,7 +1074,7 @@ const AlarmsPage = () => {
                                         onChange={handleAlertInputChange}
                                     />
                                     <p className="form-hint">
-                                        Jeśli puste, użyte zostanie bieżące time
+                                        If empty, the current time will be used
                                     </p>
                                 </div>
                             </div>
@@ -1087,14 +1087,14 @@ const AlarmsPage = () => {
                                     onClick={() => setShowAddAlertModal(false)}
                                     disabled={loading}
                                 >
-                                    Anuluj
+                                    Cancel
                                 </button>
                                 <button
                                     type="submit"
                                     className="btn-primary"
                                     disabled={loading}
                                 >
-                                    {loading ? 'Tworzenie...' : 'Utwórz alarm'}
+                                    {loading ? 'Creating...' : 'Create Alert'}
                                 </button>
                             </div>
                         </form>
@@ -1107,7 +1107,7 @@ const AlarmsPage = () => {
                 <div className="modal-overlay" onClick={() => setShowAddAlertModal(false)}>
                     <div className="modal-container" onClick={(e) => e.stopPropagation()}>
                         <div className="modal-header">
-                            <h2 className="modal-title">Dodaj nowy alarm</h2>
+                            <h2 className="modal-title">Add New Alert</h2>
                             <button 
                                 className="modal-close"
                                 onClick={() => setShowAddAlertModal(false)}
@@ -1121,7 +1121,7 @@ const AlarmsPage = () => {
                                 {/* Alert Rule Selection */}
                                 <div className="form-group form-group-full">
                                     <label htmlFor="alert_rule_id" className="form-label">
-                                        Reguła alarmu
+                                        Alert Rule
                                         <span className="required">*</span>
                                     </label>
                                     <select
@@ -1132,7 +1132,7 @@ const AlarmsPage = () => {
                                         onChange={handleAlertInputChange}
                                         required
                                     >
-                                        <option value="">Wybierz regułę...</option>
+                                        <option value="">Select a rule...</option>
                                         {rules.map(rule => (
                                             <option key={rule.id} value={rule.id}>
                                                 {rule.name} ({rule.target_metric})
@@ -1140,14 +1140,14 @@ const AlarmsPage = () => {
                                         ))}
                                     </select>
                                     <p className="form-hint">
-                                        Wybierz która reguła została złamana
+                                        Select which rule was violated
                                     </p>
                                 </div>
 
                                 {/* Triggering Value */}
                                 <div className="form-group form-group-full">
                                     <label htmlFor="triggering_value" className="form-label">
-                                        Wartość wyzwalająca
+                                        Triggering Value
                                         <span className="required">*</span>
                                     </label>
                                     <input
@@ -1162,14 +1162,14 @@ const AlarmsPage = () => {
                                         required
                                     />
                                     <p className="form-hint">
-                                        Wartość metryki, która spowodowała alarm
+                                        Metric value that triggered the alert
                                     </p>
                                 </div>
 
                                 {/* Timestamp (optional) */}
                                 <div className="form-group form-group-full">
                                     <label htmlFor="timestamp" className="form-label">
-                                        Znacznik czasu (opcjonalnie)
+                                        Timestamp (optional)
                                     </label>
                                     <input
                                         type="datetime-local"
@@ -1180,14 +1180,14 @@ const AlarmsPage = () => {
                                         onChange={handleAlertInputChange}
                                     />
                                     <p className="form-hint">
-                                        Jeśli puste, użyte zostanie bieżący czas
+                                        If empty, the current time will be used
                                     </p>
                                 </div>
 
                                 {/* Comment (optional) */}
                                 <div className="form-group form-group-full">
                                     <label htmlFor="comment" className="form-label">
-                                        Komentarz (opcjonalnie)
+                                        Comment (optional)
                                     </label>
                                     <textarea
                                         id="comment"
@@ -1195,12 +1195,12 @@ const AlarmsPage = () => {
                                         className="form-input"
                                         value={alertFormData.comment}
                                         onChange={handleAlertInputChange}
-                                        placeholder="Dodaj komentarz do alarmu..."
+                                        placeholder="Add a comment about the alert..."
                                         rows="4"
                                         style={{ resize: 'vertical' }}
                                     />
                                     <p className="form-hint">
-                                        Dodatkowe informacje o alarmie
+                                        Additional alert details
                                     </p>
                                 </div>
                             </div>
@@ -1213,14 +1213,14 @@ const AlarmsPage = () => {
                                     onClick={() => setShowAddAlertModal(false)}
                                     disabled={loading}
                                 >
-                                    Anuluj
+                                    Cancel
                                 </button>
                                 <button
                                     type="submit"
                                     className="btn-primary"
                                     disabled={loading}
                                 >
-                                    {loading ? 'Tworzenie...' : 'Utwórz alarm'}
+                                    {loading ? 'Creating...' : 'Create Alert'}
                                 </button>
                             </div>
                         </form>
@@ -1244,14 +1244,14 @@ const AlarmsPage = () => {
 
                         <div className="rule-form">
                             <div className="form-group form-group-full">
-                                <label className="form-label">Reguła alarmu</label>
+                                <label className="form-label">Alert Rule</label>
                                 <div style={{ padding: '8px 12px', background: 'rgba(255, 255, 255, 0.05)', border: '1px solid var(--border-color)', borderRadius: '6px' }}>
-                                    {selectedCommentAlert.alert_rule?.name || 'Brak nazwy'}
+                                    {selectedCommentAlert.alert_rule?.name || 'No name'}
                                 </div>
                             </div>
 
                             <div className="form-group form-group-full">
-                                <label className="form-label">Istniejący komentarz</label>
+                                <label className="form-label">Existing Comment</label>
                                 <div style={{ 
                                     padding: '12px', 
                                     background: 'rgba(255, 255, 255, 0.05)', 
@@ -1262,18 +1262,18 @@ const AlarmsPage = () => {
                                     wordWrap: 'break-word',
                                     opacity: 0.8
                                 }}>
-                                    {selectedCommentAlert.alert_comment?.text || 'Brak komentarza'}
+                                    {selectedCommentAlert.alert_comment?.text || 'No comment'}
                                 </div>
                             </div>
 
                             {isAddingComment && (
                                 <div className="form-group form-group-full">
-                                    <label className="form-label">Dodaj nową część komentarza</label>
+                                    <label className="form-label">Add New Comment Part</label>
                                     <textarea
                                         className="form-input"
                                         value={newCommentText}
                                         onChange={(e) => setNewCommentText(e.target.value)}
-                                        placeholder="Wpisz nowy fragment komentarza..."
+                                        placeholder="Enter a new comment part..."
                                         rows="6"
                                         style={{ resize: 'vertical' }}
                                     />
@@ -1281,7 +1281,7 @@ const AlarmsPage = () => {
                             )}
 
                             <div className="form-group form-group-full">
-                                <label className="form-label">Data dodania komentarza</label>
+                                <label className="form-label">Comment Timestamp</label>
                                 <div style={{ padding: '8px 12px', background: 'rgba(255, 255, 255, 0.05)', border: '1px solid var(--border-color)', borderRadius: '6px' }}>
                                     {formatTimestamp(selectedCommentAlert.alert_comment?.timestamp)}
                                 </div>
@@ -1296,14 +1296,14 @@ const AlarmsPage = () => {
                                             onClick={() => setIsAddingComment(true)}
                                         >
                                             <Plus size={16} style={{ marginRight: '8px' }} />
-                                            Dodaj komentarz
+                                            Add Comment
                                         </button>
                                         <button
                                             type="button"
                                             className="btn-primary"
                                             onClick={() => setShowCommentModal(false)}
                                         >
-                                            Zamknij
+                                            Close
                                         </button>
                                     </>
                                 ) : (
@@ -1317,7 +1317,7 @@ const AlarmsPage = () => {
                                             }}
                                             disabled={commentUpdateLoading}
                                         >
-                                            Anuluj
+                                            Cancel
                                         </button>
                                         <button
                                             type="button"
@@ -1325,7 +1325,7 @@ const AlarmsPage = () => {
                                             onClick={handleAddComment}
                                             disabled={commentUpdateLoading || !newCommentText.trim()}
                                         >
-                                            {commentUpdateLoading ? 'Zapisywanie...' : 'Zapisz'}
+                                            {commentUpdateLoading ? 'Saving...' : 'Save'}
                                         </button>
                                     </>
                                 )}
