@@ -101,6 +101,44 @@ class AlertViewSet(viewsets.ModelViewSet):
             status=status.HTTP_400_BAD_REQUEST
         )
 
+    @action(detail=True, methods=['post'])
+    def add_comment(self, request, pk=None):
+        """Dodaj komentarz do alarmu bez zmiany statusu"""
+        alert = self.get_object()
+        new_comment = request.data.get('comment', None)
+
+        if not new_comment:
+            return Response(
+                {'error': 'Komentarz jest wymagany'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            from .models import AlertComment
+
+            # Get existing comment text
+            existing_text = alert.alert_comment.text if alert.alert_comment else ''
+
+            # Append new comment with separator
+            separator = '\n\n---\n\n' if existing_text else ''
+            updated_text = existing_text + separator + new_comment
+
+            # Create or update comment
+            if alert.alert_comment:
+                alert.alert_comment.text = updated_text
+                alert.alert_comment.save()
+            else:
+                alert_comment = AlertComment.objects.create(text=updated_text)
+                alert.alert_comment = alert_comment
+                alert.save()
+
+            return Response({'status': 'comment_added'})
+        except Exception as e:
+            return Response(
+                {'error': f'Błąd podczas dodawania komentarza: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
 
 class AlertRuleViewSet(viewsets.ModelViewSet):
     """ViewSet dla reguł alarmów"""

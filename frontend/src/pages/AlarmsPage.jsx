@@ -163,19 +163,16 @@ const AlarmsPage = () => {
         setCommentUpdateLoading(true);
         try {
             const csrftoken = getCookie('csrftoken');
-            const existingComment = selectedCommentAlert.alert_comment?.text || '';
-            const separator = existingComment ? '\n\n---\n\n' : '';
-            const updatedComment = existingComment + separator + newCommentText;
             
-            const response = await fetch(`${API_BASE_URL}/api/alerts/${selectedCommentAlert.id}/`, {
-                method: 'PATCH',
+            const response = await fetch(`${API_BASE_URL}/api/alerts/${selectedCommentAlert.id}/add_comment/`, {
+                method: 'POST',
                 credentials: 'include',
                 headers: { 
                     'Content-Type': 'application/json',
                     'X-CSRFToken': csrftoken
                 },
                 body: JSON.stringify({ 
-                    comment: updatedComment 
+                    comment: newCommentText 
                 })
             });
 
@@ -189,6 +186,10 @@ const AlarmsPage = () => {
             fetchAlertsData();
             
             // Update local state
+            const existingComment = selectedCommentAlert.alert_comment?.text || '';
+            const separator = existingComment ? '\n\n---\n\n' : '';
+            const updatedComment = existingComment + separator + newCommentText;
+            
             setSelectedCommentAlert({
                 ...selectedCommentAlert,
                 alert_comment: {
