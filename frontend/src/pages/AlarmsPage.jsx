@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Bell, Plus, AlertTriangle, Info, CheckCircle2, X, Trash2, SquarePen, XCircle } from 'lucide-react';
+import { Bell, Plus, AlertTriangle, Info, CheckCircle2, X, Trash2, SquarePen, XCircle, NotebookTabs} from 'lucide-react';
 
 const API_BASE_URL = 'http://localhost:8000';
 
@@ -19,6 +19,20 @@ const getCookie = (name) => {
     return cookieValue;
 };
 
+// Helper function to format timestamp
+const formatTimestamp = (timestamp) => {
+    if (!timestamp) return '-';
+    const date = new Date(timestamp);
+    return date.toLocaleString('pl-PL', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+    });
+};
+
 const AlarmsPage = () => {
     const [showAddRuleModal, setShowAddRuleModal] = useState(false);
     const [showAddAlertModal, setShowAddAlertModal] = useState(false);
@@ -29,7 +43,9 @@ const AlarmsPage = () => {
     const [deletingId, setDeletingId] = useState(null);
     const [ackId, setAckId] = useState(null);
     const [showAlertActionModal, setShowAlertActionModal] = useState(false);
+    const [showCommentModal, setShowCommentModal] = useState(false);
     const [selectedAlert, setSelectedAlert] = useState(null);
+    const [selectedCommentAlert, setSelectedCommentAlert] = useState(null);
     const [alertComment, setAlertComment] = useState('');
     const [alertActionLoading, setAlertActionLoading] = useState(false);
     const [alertFormData, setAlertFormData] = useState({
@@ -130,6 +146,11 @@ const AlarmsPage = () => {
         setSelectedAlert(alert);
         setAlertComment('');
         setShowAlertActionModal(true);
+    };
+
+    const openCommentModal = (alert) => {
+        setSelectedCommentAlert(alert);
+        setShowCommentModal(true);
     };
 
     const handleAcknowledgeAlert = async () => {
@@ -407,11 +428,23 @@ const AlarmsPage = () => {
                                     <tr key={alert.id}>
                                         {console.log(alert)}
                                         <td>{alert.alert_rule?.name ?? '-'}</td>
-                                        <td>{alert.alert_comment?.text ?? '-'}</td>
+                                        <td>
+                                            {alert.alert_comment ? (
+                                                <button
+                                                    className="btn-ghost-edit"
+                                                    onClick={() => openCommentModal(alert)}
+                                                    
+                                                >
+                                                    <NotebookTabs size={16}/>
+                                                </button>
+                                            ) : (
+                                                '-'
+                                            )}
+                                        </td>
                                         <td>{alert.triggering_value ?? '-'}</td>
-                                        <td>{alert.timestamp_generated ?? '-'}</td>
-                                        <td>{alert.timestamp_acknowledged ?? '-'}</td>
-                                        <td>{alert.timestamp_closed ?? '-'}</td>
+                                        <td>{formatTimestamp(alert.timestamp_generated)}</td>
+                                        <td>{formatTimestamp(alert.timestamp_acknowledged)}</td>
+                                        <td>{formatTimestamp(alert.timestamp_closed)}</td>
                                         <td>{alert.status ?? '-'}</td>
                                         <td>{alert.priority ?? '-'}</td>
                                         <td>{alert.acknowledged_by?.username ?? '-'}</td>
@@ -545,21 +578,21 @@ const AlarmsPage = () => {
                             {/* Alert Info */}
                             <div className="form-group form-group-full">
                                 <label className="form-label">Reguła alarmu</label>
-                                <div style={{ padding: '8px 12px', background: '#f5f5f5', borderRadius: '6px' }}>
+                                <div style={{ padding: '8px 12px', background: 'rgba(255, 255, 255, 0.05)', border: '1px solid var(--border-color)', borderRadius: '6px' }}>
                                     {selectedAlert.alert_rule?.name || 'Brak nazwy'}
                                 </div>
                             </div>
 
                             <div className="form-group form-group-full">
                                 <label className="form-label">Status</label>
-                                <div style={{ padding: '8px 12px', background: '#f5f5f5', borderRadius: '6px' }}>
+                                <div style={{ padding: '8px 12px', background: 'rgba(255, 255, 255, 0.05)', border: '1px solid var(--border-color)', borderRadius: '6px' }}>
                                     {selectedAlert.status}
                                 </div>
                             </div>
 
                             <div className="form-group form-group-full">
                                 <label className="form-label">Wartość wyzwalająca</label>
-                                <div style={{ padding: '8px 12px', background: '#f5f5f5', borderRadius: '6px' }}>
+                                <div style={{ padding: '8px 12px', background: 'rgba(255, 255, 255, 0.05)', border: '1px solid var(--border-color)', borderRadius: '6px' }}>
                                     {selectedAlert.triggering_value ?? '-'}
                                 </div>
                             </div>
@@ -1028,6 +1061,64 @@ const AlarmsPage = () => {
                                 </button>
                             </div>
                         </form>
+                    </div>
+                </div>
+            )}
+
+            {/* Comment Modal */}
+            {showCommentModal && selectedCommentAlert && (
+                <div className="modal-overlay" onClick={() => setShowCommentModal(false)}>
+                    <div className="modal-container" onClick={(e) => e.stopPropagation()}>
+                        <div className="modal-header">
+                            <h2 className="modal-title">Komentarz do alarmu</h2>
+                            <button 
+                                className="modal-close"
+                                onClick={() => setShowCommentModal(false)}
+                            >
+                                <X size={24} />
+                            </button>
+                        </div>
+
+                        <div className="rule-form">
+                            <div className="form-group form-group-full">
+                                <label className="form-label">Reguła alarmu</label>
+                                <div style={{ padding: '8px 12px', background: 'rgba(255, 255, 255, 0.05)', border: '1px solid var(--border-color)', borderRadius: '6px' }}>
+                                    {selectedCommentAlert.alert_rule?.name || 'Brak nazwy'}
+                                </div>
+                            </div>
+
+                            <div className="form-group form-group-full">
+                                <label className="form-label">Komentarz</label>
+                                <div style={{ 
+                                    padding: '12px', 
+                                    background: 'rgba(255, 255, 255, 0.05)', 
+                                    border: '1px solid var(--border-color)',
+                                    borderRadius: '6px',
+                                    minHeight: '100px',
+                                    whiteSpace: 'pre-wrap',
+                                    wordWrap: 'break-word'
+                                }}>
+                                    {selectedCommentAlert.alert_comment?.text || '-'}
+                                </div>
+                            </div>
+
+                            <div className="form-group form-group-full">
+                                <label className="form-label">Data dodania komentarza</label>
+                                <div style={{ padding: '8px 12px', background: 'rgba(255, 255, 255, 0.05)', border: '1px solid var(--border-color)', borderRadius: '6px' }}>
+                                    {formatTimestamp(selectedCommentAlert.alert_comment?.timestamp)}
+                                </div>
+                            </div>
+
+                            <div className="form-actions">
+                                <button
+                                    type="button"
+                                    className="btn-primary"
+                                    onClick={() => setShowCommentModal(false)}
+                                >
+                                    Zamknij
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             )}
