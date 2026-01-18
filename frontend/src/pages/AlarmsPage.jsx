@@ -491,7 +491,10 @@ const AlarmsPage = () => {
                                     <td colSpan="11" className="table-empty">Brak aktywnych alarmów</td>
                                 </tr>
                             ) : (
-                                alerts.filter(alert => alert.status !== 'CLOSED').map(alert => (
+                                alerts
+                                    .filter(alert => alert.status !== 'CLOSED')
+                                    .sort((a, b) => new Date(b.timestamp_generated) - new Date(a.timestamp_generated))
+                                    .map(alert => (
                                     <tr key={alert.id}>
                                         {console.log(alert)}
                                         <td>{alert.alert_rule?.name ?? '-'}</td>
@@ -572,7 +575,10 @@ const AlarmsPage = () => {
                                         <td colSpan="11" className="table-empty">Brak zamkniętych alarmów</td>
                                     </tr>
                                 ) : (
-                                    alerts.filter(alert => alert.status === 'CLOSED').map(alert => (
+                                    alerts
+                                        .filter(alert => alert.status === 'CLOSED')
+                                        .sort((a, b) => new Date(b.timestamp_closed) - new Date(a.timestamp_closed))
+                                        .map(alert => (
                                         <tr key={alert.id}>
                                             <td>{alert.alert_rule?.name ?? '-'}</td>
                                             <td>
