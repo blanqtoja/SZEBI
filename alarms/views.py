@@ -3,6 +3,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from django.utils import timezone
+from datetime import datetime
 
 from .models import Alert, AlertRule
 from .services import AlertManager, MonitoringService
@@ -33,7 +34,7 @@ class AlertViewSet(viewsets.ModelViewSet):
         try:
             rule_id = request.data.get('alert_rule_id')
             triggering_value = request.data.get('triggering_value')
-            timestamp = request.data.get('timestamp', timezone.now())
+            timestamp_raw = request.data.get('timestamp')
             comment = request.data.get('comment', None)
 
             if not rule_id or triggering_value is None:
@@ -42,9 +43,37 @@ class AlertViewSet(viewsets.ModelViewSet):
                     status=status.HTTP_400_BAD_REQUEST
                 )
 
+            try:
+                numeric_value = float(triggering_value)
+            except (TypeError, ValueError):
+                return Response(
+                    {'error': 'triggering_value musi być liczbą'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            if timestamp_raw:
+                try:
+                    parsed_ts = datetime.fromisoformat(timestamp_raw)
+                    if timezone.is_naive(parsed_ts):
+                        timestamp = timezone.make_aware(parsed_ts)
+                    else:
+                        timestamp = parsed_ts
+                except Exception:
+                    return Response(
+                        {'error': 'Nieprawidłowy format timestamp, oczekiwany ISO8601'},
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
+            else:
+                timestamp = timezone.now()
+
             rule = AlertRule.objects.get(id=rule_id)
             alert = MonitoringService.create_alert(
-                rule, triggering_value, timestamp, user=request.user)
+                rule=rule,
+                metric_name=rule.target_metric,
+                value=numeric_value,
+                timestamp=timestamp,
+                user=request.user,
+            )
 
             if alert and comment:
                 from .models import AlertComment
@@ -193,12 +222,23 @@ class DataInspectionViewSet(viewsets.ViewSet):
     def check_rules(self, request):
         """
         POST endpoint do analizy danych i sprawdzenia złamania reguł.
-        Oczekuje: metric_name, value, timestamp (opcjonalny)
+        Oczekuje payloadu:
+        {
+            "metric_name": str,
+            "value": float,
+            "timestamp": isoformat datetime,
+            "details": {
+                "sensor_id": int,
+                "room": str,
+                "status": str
+            }
+        }
         """
         try:
             metric_name = request.data.get('metric_name')
             value = request.data.get('value')
-            timestamp = request.data.get('timestamp')
+            timestamp_raw = request.data.get('timestamp')
+            details = request.data.get('details') or {}
 
             # Walidacja wymaganych pól
             if not metric_name or value is None:
@@ -207,19 +247,41 @@ class DataInspectionViewSet(viewsets.ViewSet):
                     status=status.HTTP_400_BAD_REQUEST
                 )
 
-            # Użyj aktualnego czasu jeśli timestamp nie został podany
-            if not timestamp:
+            try:
+                numeric_value = float(value)
+            except (TypeError, ValueError):
+                return Response(
+                    {'error': 'Pole value musi być liczbą'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            # parsowanie timestamp
+            if timestamp_raw:
+                try:
+                    parsed_ts = datetime.fromisoformat(timestamp_raw)
+                    if timezone.is_naive(parsed_ts):
+                        timestamp = timezone.make_aware(parsed_ts)
+                    else:
+                        timestamp = parsed_ts
+                except Exception:
+                    return Response(
+                        {'error': 'Nieprawidłowy format timestamp, oczekiwany ISO8601'},
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
+            else:
                 timestamp = timezone.now()
 
             # Uruchom analizę danych
-            MonitoringService.inspect_data(metric_name, value, timestamp)
+            MonitoringService.inspect_data(
+                metric_name, numeric_value, timestamp, details)
 
             return Response({
                 'status': 'success',
                 'message': 'Dane zostały przeanalizowane',
                 'metric_name': metric_name,
-                'value': value,
-                'timestamp': timestamp
+                'value': numeric_value,
+                'timestamp': timestamp,
+                'details': details
             })
 
         except Exception as e:

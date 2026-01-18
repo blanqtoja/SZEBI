@@ -113,13 +113,19 @@ class MonitoringService:
     """Serwis monitorowania - wykrywa anomalie i tworzy alarmy"""
 
     @staticmethod
-    def inspect_data(metric_name, value, timestamp):
+    def inspect_data(metric_name, value, timestamp, details=None):
         """Analizuj dane i sprawdź reguły"""
         rules = AlertRule.objects.filter(target_metric=metric_name)
 
         for rule in rules:
             if rule.check_condition(value):
-                alert = MonitoringService.create_alert(rule, value, timestamp)
+                alert = MonitoringService.create_alert(
+                    rule=rule,
+                    metric_name=metric_name,
+                    value=value,
+                    timestamp=timestamp,
+                    details=details,
+                )
                 if alert:
                     NotificationService.send_alert_notification(alert)
 
@@ -137,7 +143,7 @@ class MonitoringService:
 
     # todo: czy timestamp dodac jako timestamp_generated?
     @staticmethod
-    def create_alert(rule, value, timestamp, user=None):
+    def create_alert(rule, metric_name, value, timestamp, details=None, user=None):
         """Utwórz alarm"""
         try:
             # Sprawdź uprawnienia użytkownika jeśli podano
@@ -148,9 +154,13 @@ class MonitoringService:
 
             alert = Alert.objects.create(
                 alert_rule=rule,
+                metric_name=metric_name,
                 triggering_value=value,
+                measurement_timestamp=timestamp,
+                timestamp_generated=timestamp,
                 priority=rule.priority,
-                status=AlertStatus.NEW
+                status=AlertStatus.NEW,
+                details=details,
             )
             logger.info(f"Utworzono alarm {alert.id} dla reguły {rule.name}")
             return alert

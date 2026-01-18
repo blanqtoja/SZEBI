@@ -138,10 +138,13 @@ class Alert(models.Model):
         blank=True,
         related_name='alerts'
     )
+    metric_name = models.CharField(max_length=255, null=True, blank=True)
     triggering_value = models.FloatField()
-    timestamp_generated = models.DateTimeField(auto_now_add=True)
+    measurement_timestamp = models.DateTimeField(null=True, blank=True)
+    timestamp_generated = models.DateTimeField(default=timezone.now)
     timestamp_acknowledged = models.DateTimeField(null=True, blank=True)
     timestamp_closed = models.DateTimeField(null=True, blank=True)
+    details = models.JSONField(null=True, blank=True)
     status = models.CharField(
         max_length=20,
         choices=AlertStatus.choices,
