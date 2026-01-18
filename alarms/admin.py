@@ -14,7 +14,6 @@ from .models import (
     AlertComment,
     NotificationLog,
     NotificationGroup,
-    NotificationPreference,
     ChannelType
 )
 

@@ -75,30 +75,6 @@ class NotificationGroup(models.Model):
         return self.users.all()
 
 
-class NotificationPreference(models.Model):
-    """Preferencje powiadomień użytkownika"""
-    user = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-        related_name='notification_preferences'
-    )
-    enable_email = models.BooleanField(default=True)
-    enable_webpush = models.BooleanField(default=True)
-    min_priority_level = models.CharField(
-        max_length=20,
-        choices=AlertPriority.choices,
-        default=AlertPriority.LOW
-    )
-
-    class Meta:
-        db_table = 'notification_preference'
-        verbose_name = 'Preferencja powiadomień'
-        verbose_name_plural = 'Preferencje powiadomień'
-
-    def __str__(self):
-        return f"Preferencje {self.user.username}"
-
-
 class AlertRule(models.Model):
     """Reguła tworzenia alarmów"""
     operator = models.CharField(max_length=20, choices=RuleOperator.choices)
