@@ -208,7 +208,10 @@ const AlarmsPage = () => {
         if (!selectedAlert) return;
         setAlertActionLoading(true);
         try {
-            const body = alertComment ? { comment: alertComment } : {};
+            const existingComment = selectedAlert.alert_comment?.text || '';
+            const separator = existingComment && alertComment ? '\n\n---\n\n' : '';
+            const updatedComment = existingComment + separator + alertComment;
+            const body = alertComment ? { comment: updatedComment } : {};
             const csrftoken = getCookie('csrftoken');
             
             const response = await fetch(`${API_BASE_URL}/api/alerts/${selectedAlert.id}/acknowledge/`, {
@@ -242,7 +245,10 @@ const AlarmsPage = () => {
         if (!selectedAlert) return;
         setAlertActionLoading(true);
         try {
-            const body = alertComment ? { comment: alertComment } : {};
+            const existingComment = selectedAlert.alert_comment?.text || '';
+            const separator = existingComment && alertComment ? '\n\n---\n\n' : '';
+            const updatedComment = existingComment + separator + alertComment;
+            const body = alertComment ? { comment: updatedComment } : {};
             const csrftoken = getCookie('csrftoken');
             
             const response = await fetch(`${API_BASE_URL}/api/alerts/${selectedAlert.id}/close/`, {
@@ -648,10 +654,29 @@ const AlarmsPage = () => {
                                 </div>
                             </div>
 
+                            {/* Existing Comment (if any) */}
+                            {selectedAlert.alert_comment?.text && (
+                                <div className="form-group form-group-full">
+                                    <label className="form-label">Istniejący komentarz</label>
+                                    <div style={{ 
+                                        padding: '12px', 
+                                        background: 'rgba(255, 255, 255, 0.05)', 
+                                        border: '1px solid var(--border-color)',
+                                        borderRadius: '6px',
+                                        minHeight: '60px',
+                                        whiteSpace: 'pre-wrap',
+                                        wordWrap: 'break-word',
+                                        opacity: 0.8
+                                    }}>
+                                        {selectedAlert.alert_comment.text}
+                                    </div>
+                                </div>
+                            )}
+
                             {/* Comment Field */}
                             <div className="form-group form-group-full">
                                 <label htmlFor="alertComment" className="form-label">
-                                    Komentarz
+                                    {selectedAlert.alert_comment?.text ? 'Dodaj nową część komentarza' : 'Komentarz'}
                                 </label>
                                 <textarea
                                     id="alertComment"
