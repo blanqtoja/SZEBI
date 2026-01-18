@@ -68,7 +68,7 @@ class DataFlowIntegrationTests(TestCase):
         self.assertTrue(mock_get.called)
         called_args, called_kwargs = mock_get.call_args
         # Note: endpoint spelling in code
-        self.assertIn('/api/optimalization/alarm/', called_args[0])
+        self.assertIn('/api/optimization/alarm/', called_args[0])
         params = called_kwargs.get('params', {})
         # Basic payload fields forwarded
         self.assertEqual(params.get('id'), alert.id)

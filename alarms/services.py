@@ -314,7 +314,7 @@ class NotificationService:
 
     @staticmethod
     def send_to_emergency_mode(alert):
-        """Wyślij alert na endpoint /api/optimalization/alarm/ metodą GET (parametry w URL)."""
+        """Wyślij alert na endpoint /api/optimization/alarm/ metodą GET (parametry w URL)."""
         try:
             alert_data = {
                 'id': alert.id,
@@ -326,18 +326,18 @@ class NotificationService:
                 'rule_metric': alert.alert_rule.target_metric if alert.alert_rule else None,
             }
             response = requests.get(
-                f"{settings.BASE_URL}/api/optimalization/alarm/",
+                f"{settings.BASE_URL}/api/optimization/alarm/",
                 params=alert_data,
                 timeout=5
             )
             if response.status_code == 200:
                 logger.info(
-                    f"Alert {alert.id} wysłany do /api/optimalization/alarm/")
+                    f"Alert {alert.id} wysłany do /api/optimization/alarm/")
                 return True
             logger.error(
-                f"Błąd wysyłania do /api/optimalization/alarm/: {response.status_code} - {response.text}"
+                f"Błąd wysyłania do /api/optimization/alarm/ {response.status_code} - {response.text}"
             )
             return False
         except requests.exceptions.RequestException as e:
-            logger.error(f"Błąd połączenia z /api/optimalization/alarm/: {e}")
+            logger.error(f"Błąd połączenia z /api/optimization/alarm/: {e}")
             return False
