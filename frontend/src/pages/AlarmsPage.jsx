@@ -447,6 +447,14 @@ const AlarmsPage = () => {
                 
             </div>
             
+            <button 
+                className="btn-add-rule"
+                onClick={() => setShowAddAlertModal(true)}
+                style={{ bottom: '90px' }}
+            >
+                <Plus size={20} />
+                Dodaj alarm
+            </button>
             <div className="rules-card">
                 <div className="rules-card-header">
                     <h3>Lista alarmów</h3>
@@ -535,14 +543,6 @@ const AlarmsPage = () => {
                 Dodaj regułę
             </button>
 
-            <button 
-                className="btn-add-rule"
-                onClick={() => setShowAddAlertModal(true)}
-                style={{ bottom: '90px' }}
-            >
-                <Plus size={20} />
-                Dodaj alarm
-            </button>
             {/* List of rules */}
             <div className="rules-card">
                 <div className="rules-card-header">
