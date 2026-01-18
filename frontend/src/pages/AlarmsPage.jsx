@@ -23,7 +23,7 @@ const getCookie = (name) => {
 const formatTimestamp = (timestamp) => {
     if (!timestamp) return '-';
     const date = new Date(timestamp);
-    return date.toLocaleString('pl-PL', {
+    return date.toLocaleString('en-US', {
         year: 'numeric',
         month: '2-digit',
         day: '2-digit',
@@ -86,7 +86,7 @@ const AlarmsPage = () => {
             const data = await response.json();
             setRules(Array.isArray(data) ? data : data.results || data.alerts || []);
         } catch (error) {
-            setNotification({ type: 'error', message: 'Nie udało się pobrać reguł.' });
+            setNotification({ type: 'error', message: 'Failed to fetch rules.' });
         } finally {
             setRulesLoading(false);
             setTimeout(() => setNotification(null), 4000);
@@ -110,7 +110,7 @@ const AlarmsPage = () => {
             const data = await response.json();
             setAlerts(Array.isArray(data) ? data : data.alerts || []);
         } catch (error) {
-            setNotification({ type: 'error', message: 'Nie udało się pobrać alarmów.' });
+            setNotification({ type: 'error', message: 'Failed to fetch alerts.' });
         } finally {
             setAlertsLoading(false);
             setTimeout(() => setNotification(null), 4000);
@@ -118,7 +118,7 @@ const AlarmsPage = () => {
     };
 
     const handleDelete = async (ruleId) => {
-        const confirmed = window.confirm('Czy na pewno chcesz usunąć tę regułę?');
+        const confirmed = window.confirm('Are you sure you want to delete this rule?');
         if (!confirmed) return;
         setDeletingId(ruleId);
         try {
@@ -136,10 +136,10 @@ const AlarmsPage = () => {
                 throw new Error('Failed to delete alert rule');
             }
 
-            setNotification({ type: 'success', message: 'Reguła została usunięta.' });
+            setNotification({ type: 'success', message: 'Rule deleted.' });
             fetchRules();
         } catch (error) {
-            setNotification({ type: 'error', message: 'Nie udało się usunąć reguły.' });
+            setNotification({ type: 'error', message: 'Failed to delete rule.' });
         } finally {
             setDeletingId(null);
             setTimeout(() => setNotification(null), 4000);
@@ -181,7 +181,7 @@ const AlarmsPage = () => {
                 throw new Error('Failed to add comment');
             }
 
-            setNotification({ type: 'success', message: 'Komentarz dodany' });
+            setNotification({ type: 'success', message: 'Comment added' });
             setIsAddingComment(false);
             setNewCommentText('');
             fetchAlertsData();
@@ -199,7 +199,7 @@ const AlarmsPage = () => {
                 }
             });
         } catch (error) {
-            setNotification({ type: 'error', message: 'Nie udało się dodać komentarza' });
+            setNotification({ type: 'error', message: 'Failed to add comment' });
         } finally {
             setCommentUpdateLoading(false);
             setTimeout(() => setNotification(null), 4000);
@@ -230,13 +230,13 @@ const AlarmsPage = () => {
                 throw new Error('Failed to acknowledge alert');
             }
 
-            setNotification({ type: 'success', message: 'Alarm potwierdzony' });
+            setNotification({ type: 'success', message: 'Alert acknowledged' });
             setShowAlertActionModal(false);
             setSelectedAlert(null);
             setAlertComment('');
             fetchAlertsData();
         } catch (error) {
-            setNotification({ type: 'error', message: 'Nie udało się potwierdzić alarmu' });
+            setNotification({ type: 'error', message: 'Failed to acknowledge alert' });
         } finally {
             setAlertActionLoading(false);
             setTimeout(() => setNotification(null), 4000);
@@ -267,13 +267,13 @@ const AlarmsPage = () => {
                 throw new Error('Failed to close alert');
             }
 
-            setNotification({ type: 'success', message: 'Alarm zamknięty' });
+            setNotification({ type: 'success', message: 'Alert closed' });
             setShowAlertActionModal(false);
             setSelectedAlert(null);
             setAlertComment('');
             fetchAlertsData();
         } catch (error) {
-            setNotification({ type: 'error', message: 'Nie udało się zamknąć alarmu' });
+            setNotification({ type: 'error', message: 'Failed to close alert' });
         } finally {
             setAlertActionLoading(false);
             setTimeout(() => setNotification(null), 4000);
@@ -330,7 +330,7 @@ const AlarmsPage = () => {
             
             setNotification({
                 type: 'success',
-                message: 'Alarm został pomyślnie utworzony!'
+                message: 'Alert created successfully!'
             });
             setAlertFormData({
                 alert_rule_id: '',
@@ -344,7 +344,7 @@ const AlarmsPage = () => {
             console.error(error);
             setNotification({
                 type: 'error',
-                message: 'Nie udało się utworzyć alarmu. Spróbuj ponownie.'
+                message: 'Failed to create alert. Please try again.'
             });
         } finally {
             setLoading(false);
@@ -385,7 +385,7 @@ const AlarmsPage = () => {
             
             setNotification({
                 type: 'success',
-                message: 'Reguła alarmu została pomyślnie utworzona!'
+                message: 'Alert rule created successfully!'
             });
             setFormData({
                 name: '',
@@ -402,7 +402,7 @@ const AlarmsPage = () => {
             console.error(error);
             setNotification({
                 type: 'error',
-                message: 'Nie udało się utworzyć reguły. Spróbuj ponownie.'
+                message: 'Failed to create rule. Please try again.'
             });
         } finally {
             setLoading(false);
@@ -439,9 +439,9 @@ const AlarmsPage = () => {
                         <Bell size={32} />
                     </div>
                     <div>
-                        <h1 className="page-title">System Alarmów</h1>
+                        <h1 className="page-title">Alarm System</h1>
                         <p className="page-subtitle">
-                            Zarządzaj regułami alarmów i monitoruj status systemów
+                            Manage alarm rules and monitor system status
                         </p>
                     </div>
                 </div>
@@ -454,41 +454,41 @@ const AlarmsPage = () => {
                 style={{ bottom: '90px' }}
             >
                 <Plus size={20} />
-                Dodaj alarm
+                Add Alert
             </button>
             <div className="rules-card">
                 <div className="rules-card-header">
-                    <h3>Aktywne alarmy</h3>
+                    <h3>Active Alerts</h3>
                     <button className="btn-secondary" onClick={fetchAlertsData} disabled={alertsLoading}>
-                        {alertsLoading ? 'Odświeżanie...' : 'Odśwież'}
+                        {alertsLoading ? 'Refreshing...' : 'Refresh'}
                     </button>
                 </div>
                 <div className="rules-table-wrapper">
                     <table className="rules-table">
                         <thead>
                             <tr>
-                                <th>Zasada</th>
-                                <th>Komentarz</th>
-                                <th>triggering value</th>
-                                <th>generated at</th>
-                                <th>ack at</th>
-                                <th>closed at</th>
-                                <th>status</th>
-                                <th>priority</th>
-                                <th>ack by</th>
-                                <th>closed by</th>
-                                <th>Akcje</th>
+                                <th>Rule</th>
+                                <th>Comment</th>
+                                <th>Triggering Value</th>
+                                <th>Generated At</th>
+                                <th>Acknowledged At</th>
+                                <th>Closed At</th>
+                                <th>Status</th>
+                                <th>Priority</th>
+                                <th>Acknowledged By</th>
+                                <th>Closed By</th>
+                                <th>Actions</th>
 
                             </tr>
                         </thead>
                         <tbody>
                             {alertsLoading ? (
                                 <tr>
-                                    <td colSpan="11" className="table-empty">Ładowanie...</td>
+                                    <td colSpan="11" className="table-empty">Loading...</td>
                                 </tr>
                             ) : alerts.filter(a => a.status !== 'CLOSED').length === 0 ? (
                                 <tr>
-                                    <td colSpan="11" className="table-empty">Brak aktywnych alarmów</td>
+                                    <td colSpan="11" className="table-empty">No active alerts</td>
                                 </tr>
                             ) : (
                                 alerts
@@ -525,7 +525,7 @@ const AlarmsPage = () => {
                                                     className="btn-ghost-edit"
                                                     onClick={() => openAlertActionModal(alert)}
                                                     disabled={alert.status === 'CLOSED'}
-                                                    title={alert.status === 'CLOSED' ? 'Alarm zamknięty' : 'Zarządzaj alarmem'}
+                                                    title={alert.status === 'CLOSED' ? 'Alert closed' : 'Manage alert'}
                                                 >
                                                     <SquarePen size={16} />
                                                 </button>
@@ -547,7 +547,7 @@ const AlarmsPage = () => {
                     onClick={() => setShowClosedAlerts(!showClosedAlerts)}
                 >
                     <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        Zamknięte alarmy ({alerts.filter(a => a.status === 'CLOSED').length})
+                        Closed Alerts ({alerts.filter(a => a.status === 'CLOSED').length})
                         {showClosedAlerts ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
                     </h3>
                 </div>
@@ -572,7 +572,7 @@ const AlarmsPage = () => {
                             <tbody>
                                 {alerts.filter(a => a.status === 'CLOSED').length === 0 ? (
                                     <tr>
-                                        <td colSpan="11" className="table-empty">Brak zamkniętych alarmów</td>
+                                        <td colSpan="11" className="table-empty">No closed alerts</td>
                                     </tr>
                                 ) : (
                                     alerts
@@ -626,40 +626,40 @@ const AlarmsPage = () => {
                 onClick={() => setShowAddRuleModal(true)}
             >
                 <Plus size={20} />
-                Dodaj regułę
+                Add Rule
             </button>
 
             {/* List of rules */}
             <div className="rules-card">
                 <div className="rules-card-header">
-                    <h3>Lista reguł</h3>
+                    <h3>Rule List</h3>
                     
                     <button className="btn-secondary" onClick={fetchRules} disabled={rulesLoading}>
-                        {rulesLoading ? 'Odświeżanie...' : 'Odśwież'}
+                        {rulesLoading ? 'Refreshing...' : 'Refresh'}
                     </button>
                 </div>
                 <div className="rules-table-wrapper">
                     <table className="rules-table">
                         <thead>
                             <tr>
-                                <th>Nazwa</th>
-                                <th>Metryka</th>
+                                <th>Name</th>
+                                <th>Metric</th>
                                 <th>Operator</th>
-                                <th>Próg min</th>
-                                <th>Próg max</th>
-                                <th>Priorytet</th>
-                                <th>Czas (s)</th>
-                                <th>Akcje</th>
+                                <th>Min Threshold</th>
+                                <th>Max Threshold</th>
+                                <th>Priority</th>
+                                <th>Duration (s)</th>
+                                <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
                             {rulesLoading ? (
                                 <tr>
-                                    <td colSpan="8" className="table-empty">Ładowanie...</td>
+                                    <td colSpan="8" className="table-empty">Loading...</td>
                                 </tr>
                             ) : rules.length === 0 ? (
                                 <tr>
-                                    <td colSpan="8" className="table-empty">Brak reguł do wyświetlenia</td>
+                                    <td colSpan="8" className="table-empty">No rules to display</td>
                                 </tr>
                             ) : (
                                 rules.map(rule => (
@@ -678,7 +678,7 @@ const AlarmsPage = () => {
                                                     onClick={() => handleDelete(rule.id)}
                                                     disabled={deletingId === rule.id}
                                                 >
-                                                    {deletingId === rule.id ? 'Usuwanie...' : <Trash2 size={16} />}
+                                                    {deletingId === rule.id ? 'Deleting...' : <Trash2 size={16} />}
                                                 </button>
                                             </div>
                                         </td>
@@ -694,10 +694,10 @@ const AlarmsPage = () => {
             <div className="info-box">
                 <Info size={20} />
                 <div>
-                    <h3 className="info-title">Zarządzanie regułami alarmów</h3>
+                    <h3 className="info-title">Alarm Rules Management</h3>
                     <p className="info-text">
-                        Twórz reguły monitorowania, które automatycznie generują alarmy 
-                        gdy wartości metryk przekroczą określone progi.
+                        Create monitoring rules that automatically generate alerts 
+                        when metric values exceed defined thresholds.
                     </p>
                 </div>
             </div>
@@ -708,7 +708,7 @@ const AlarmsPage = () => {
                     <div className="modal-container" onClick={(e) => e.stopPropagation()}>
                         <div className="modal-header">
                             <h2 className="modal-title">
-                                {selectedAlert.status === 'NEW' ? 'Zarządzaj alarmem' : 'Zamknij alarm'}
+                                {selectedAlert.status === 'NEW' ? 'Manage Alert' : 'Close Alert'}
                             </h2>
                             <button 
                                 className="modal-close"
@@ -721,9 +721,9 @@ const AlarmsPage = () => {
                         <div className="rule-form">
                             {/* Alert Info */}
                             <div className="form-group form-group-full">
-                                <label className="form-label">Reguła alarmu</label>
+                                <label className="form-label">Alert Rule</label>
                                 <div style={{ padding: '8px 12px', background: 'rgba(255, 255, 255, 0.05)', border: '1px solid var(--border-color)', borderRadius: '6px' }}>
-                                    {selectedAlert.alert_rule?.name || 'Brak nazwy'}
+                                    {selectedAlert.alert_rule?.name || 'No name'}
                                 </div>
                             </div>
 
@@ -735,7 +735,7 @@ const AlarmsPage = () => {
                             </div>
 
                             <div className="form-group form-group-full">
-                                <label className="form-label">Wartość wyzwalająca</label>
+                                <label className="form-label">Triggering Value</label>
                                 <div style={{ padding: '8px 12px', background: 'rgba(255, 255, 255, 0.05)', border: '1px solid var(--border-color)', borderRadius: '6px' }}>
                                     {selectedAlert.triggering_value ?? '-'}
                                 </div>
@@ -744,7 +744,7 @@ const AlarmsPage = () => {
                             {/* Existing Comment (if any) */}
                             {selectedAlert.alert_comment?.text && (
                                 <div className="form-group form-group-full">
-                                    <label className="form-label">Istniejący komentarz</label>
+                                    <label className="form-label">Existing Comment</label>
                                     <div style={{ 
                                         padding: '12px', 
                                         background: 'rgba(255, 255, 255, 0.05)', 
@@ -763,14 +763,14 @@ const AlarmsPage = () => {
                             {/* Comment Field */}
                             <div className="form-group form-group-full">
                                 <label htmlFor="alertComment" className="form-label">
-                                    {selectedAlert.alert_comment?.text ? 'Dodaj nową część komentarza' : 'Komentarz'}
+                                    {selectedAlert.alert_comment?.text ? 'Add New Comment Part' : 'Comment'}
                                 </label>
                                 <textarea
                                     id="alertComment"
                                     className="form-input"
                                     value={alertComment}
                                     onChange={(e) => setAlertComment(e.target.value)}
-                                    placeholder="Dodaj komentarz (opcjonalnie)..."
+                                    placeholder="Add comment (optional)..."
                                     rows="4"
                                     style={{ resize: 'vertical' }}
                                 />
@@ -796,7 +796,7 @@ const AlarmsPage = () => {
                                         style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
                                     >
                                         <CheckCircle2 size={16} />
-                                        {alertActionLoading ? 'Potwierdzanie...' : 'Potwierdź'}
+                                        {alertActionLoading ? 'Acknowledging...' : 'Acknowledge'}
                                     </button>
                                 )}
                                 
@@ -808,7 +808,7 @@ const AlarmsPage = () => {
                                     style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
                                 >
                                     <XCircle size={16} />
-                                    {alertActionLoading ? 'Zamykanie...' : 'Zamknij'}
+                                    {alertActionLoading ? 'Closing...' : 'Close'}
                                 </button>
                             </div>
                         </div>
@@ -821,7 +821,7 @@ const AlarmsPage = () => {
                 <div className="modal-overlay" onClick={() => setShowAddRuleModal(false)}>
                     <div className="modal-container" onClick={(e) => e.stopPropagation()}>
                         <div className="modal-header">
-                            <h2 className="modal-title">Dodaj nową regułę alarmu</h2>
+                            <h2 className="modal-title">Add New Alert Rule</h2>
                             <button 
                                 className="modal-close"
                                 onClick={() => setShowAddRuleModal(false)}
@@ -1233,7 +1233,7 @@ const AlarmsPage = () => {
                 <div className="modal-overlay" onClick={() => setShowCommentModal(false)}>
                     <div className="modal-container" onClick={(e) => e.stopPropagation()}>
                         <div className="modal-header">
-                            <h2 className="modal-title">Komentarz do alarmu</h2>
+                            <h2 className="modal-title">Alert Comment</h2>
                             <button 
                                 className="modal-close"
                                 onClick={() => setShowCommentModal(false)}
