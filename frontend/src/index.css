@@ -893,6 +893,12 @@ a {
   transition: all 0.2s;
 }
 
+.form-input[type="date"],
+.form-input[type="time"],
+.form-input[type="datetime-local"] {
+  color-scheme: dark;
+}
+
 .form-input:focus,
 .form-select:focus {
   outline: none;
@@ -907,6 +913,11 @@ a {
 
 .form-select {
   cursor: pointer;
+}
+
+.form-select option {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
 }
 
 .form-hint {

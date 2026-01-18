@@ -1,5 +1,15 @@
 import React, { useEffect, useState } from 'react';
-import { Bell, Plus, AlertTriangle, Info, CheckCircle2, X, Trash2, SquarePen, XCircle, NotebookTabs, ChevronDown, ChevronUp} from 'lucide-react';
+import { Plus } from 'lucide-react';
+import NotificationToast from '../components/alarms/NotificationToast';
+import PageHeader from '../components/alarms/PageHeader';
+import ActiveAlertsTable from '../components/alarms/ActiveAlertsTable';
+import ClosedAlertsSection from '../components/alarms/ClosedAlertsSection';
+import RuleList from '../components/alarms/RuleList';
+import InfoBox from '../components/alarms/InfoBox';
+import AlertActionModal from '../components/alarms/AlertActionModal';
+import AddRuleModal from '../components/alarms/AddRuleModal';
+import AddAlertModal from '../components/alarms/AddAlertModal';
+import CommentModal from '../components/alarms/CommentModal';
 
 const API_BASE_URL = 'http://localhost:8000';
 
@@ -41,7 +51,6 @@ const AlarmsPage = () => {
     const [rulesLoading, setRulesLoading] = useState(false);
     const [alertsLoading, setAlertsLoading] = useState(false);
     const [deletingId, setDeletingId] = useState(null);
-    const [ackId, setAckId] = useState(null);
     const [showAlertActionModal, setShowAlertActionModal] = useState(false);
     const [showCommentModal, setShowCommentModal] = useState(false);
     const [selectedAlert, setSelectedAlert] = useState(null);
@@ -412,42 +421,16 @@ const AlarmsPage = () => {
 
     return (
         <div className="alarms-page">
-            {/* Notification Toast */}
-            {notification && (
-                <div className={`notification-toast notification-${notification.type}`}>
-                    <div className="notification-content">
-                        {notification.type === 'success' ? (
-                            <CheckCircle2 size={20} />
-                        ) : (
-                            <AlertTriangle size={20} />
-                        )}
-                        <span>{notification.message}</span>
-                    </div>
-                    <button 
-                        onClick={() => setNotification(null)}
-                        className="notification-close"
-                    >
-                        <X size={16} />
-                    </button>
-                </div>
-            )}
+            <NotificationToast
+                notification={notification}
+                onClose={() => setNotification(null)}
+            />
 
-            {/* Header */}
-            <div className="page-header">
-                <div className="page-header-content">
-                    <div className="page-header-icon">
-                        <Bell size={32} />
-                    </div>
-                    <div>
-                        <h1 className="page-title">Alarm System</h1>
-                        <p className="page-subtitle">
-                            Manage alarm rules and monitor system status
-                        </p>
-                    </div>
-                </div>
-                
-            </div>
-            
+            <PageHeader
+                title="Alarm System"
+                subtitle="Manage alarm rules and monitor system status"
+            />
+
             <button 
                 className="btn-add-rule"
                 onClick={() => setShowAddAlertModal(true)}
@@ -456,170 +439,23 @@ const AlarmsPage = () => {
                 <Plus size={20} />
                 Add Alert
             </button>
-            <div className="rules-card">
-                <div className="rules-card-header">
-                    <h3>Active Alerts</h3>
-                    <button className="btn-secondary" onClick={fetchAlertsData} disabled={alertsLoading}>
-                        {alertsLoading ? 'Refreshing...' : 'Refresh'}
-                    </button>
-                </div>
-                <div className="rules-table-wrapper">
-                    <table className="rules-table">
-                        <thead>
-                            <tr>
-                                <th>Rule</th>
-                                <th>Comment</th>
-                                <th>Triggering Value</th>
-                                <th>Generated At</th>
-                                <th>Acknowledged At</th>
-                                <th>Closed At</th>
-                                <th>Status</th>
-                                <th>Priority</th>
-                                <th>Acknowledged By</th>
-                                <th>Closed By</th>
-                                <th>Actions</th>
 
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {alertsLoading ? (
-                                <tr>
-                                    <td colSpan="11" className="table-empty">Loading...</td>
-                                </tr>
-                            ) : alerts.filter(a => a.status !== 'CLOSED').length === 0 ? (
-                                <tr>
-                                    <td colSpan="11" className="table-empty">No active alerts</td>
-                                </tr>
-                            ) : (
-                                alerts
-                                    .filter(alert => alert.status !== 'CLOSED')
-                                    .sort((a, b) => new Date(b.timestamp_generated) - new Date(a.timestamp_generated))
-                                    .map(alert => (
-                                    <tr key={alert.id}>
-                                        {console.log(alert)}
-                                        <td>{alert.alert_rule?.name ?? '-'}</td>
-                                        <td>
-                                            {alert.alert_comment ? (
-                                                <button
-                                                    className="btn-ghost-edit"
-                                                    onClick={() => openCommentModal(alert)}
-                                                    
-                                                >
-                                                    <NotebookTabs size={16}/>
-                                                </button>
-                                            ) : (
-                                                '-'
-                                            )}
-                                        </td>
-                                        <td>{alert.triggering_value ?? '-'}</td>
-                                        <td>{formatTimestamp(alert.timestamp_generated)}</td>
-                                        <td>{formatTimestamp(alert.timestamp_acknowledged)}</td>
-                                        <td>{formatTimestamp(alert.timestamp_closed)}</td>
-                                        <td>{alert.status ?? '-'}</td>
-                                        <td>{alert.priority ?? '-'}</td>
-                                        <td>{alert.acknowledged_by?.username ?? '-'}</td>
-                                        <td>{alert.closed_by?.username ?? '-'}</td>
-                                        <td>
-                                            <div className="table-actions">
-                                                <button
-                                                    className="btn-ghost-edit"
-                                                    onClick={() => openAlertActionModal(alert)}
-                                                    disabled={alert.status === 'CLOSED'}
-                                                    title={alert.status === 'CLOSED' ? 'Alert closed' : 'Manage alert'}
-                                                >
-                                                    <SquarePen size={16} />
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))
-                            )}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+            <ActiveAlertsTable
+                alerts={alerts}
+                loading={alertsLoading}
+                onRefresh={fetchAlertsData}
+                formatTimestamp={formatTimestamp}
+                onOpenActionModal={openAlertActionModal}
+                onOpenCommentModal={openCommentModal}
+            />
 
-            {/* Closed Alerts Section */}
-            <div className="rules-card">
-                <div 
-                    className="rules-card-header" 
-                    style={{ cursor: 'pointer' }}
-                    onClick={() => setShowClosedAlerts(!showClosedAlerts)}
-                >
-                    <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        Closed Alerts ({alerts.filter(a => a.status === 'CLOSED').length})
-                        {showClosedAlerts ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
-                    </h3>
-                </div>
-                {showClosedAlerts && (
-                    <div className="rules-table-wrapper">
-                        <table className="rules-table">
-                            <thead>
-                                <tr>
-                                    <th>Rule</th>
-                                    <th>Comment</th>
-                                    <th>Triggering Value</th>
-                                    <th>Generated At</th>
-                                    <th>Acknowledged At</th>
-                                    <th>Closed At</th>
-                                    <th>Status</th>
-                                    <th>Priority</th>
-                                    <th>Acknowledged By</th>
-                                    <th>Closed By</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {alerts.filter(a => a.status === 'CLOSED').length === 0 ? (
-                                    <tr>
-                                        <td colSpan="11" className="table-empty">No closed alerts</td>
-                                    </tr>
-                                ) : (
-                                    alerts
-                                        .filter(alert => alert.status === 'CLOSED')
-                                        .sort((a, b) => new Date(b.timestamp_closed) - new Date(a.timestamp_closed))
-                                        .map(alert => (
-                                        <tr key={alert.id}>
-                                            <td>{alert.alert_rule?.name ?? '-'}</td>
-                                            <td>
-                                                {alert.alert_comment ? (
-                                                    <button
-                                                        className="btn-ghost-edit"
-                                                        onClick={() => openCommentModal(alert)}
-                                                    >
-                                                        <NotebookTabs size={16}/>
-                                                    </button>
-                                                ) : (
-                                                    '-'
-                                                )}
-                                            </td>
-                                            <td>{alert.triggering_value ?? '-'}</td>
-                                            <td>{formatTimestamp(alert.timestamp_generated)}</td>
-                                            <td>{formatTimestamp(alert.timestamp_acknowledged)}</td>
-                                            <td>{formatTimestamp(alert.timestamp_closed)}</td>
-                                            <td>{alert.status ?? '-'}</td>
-                                            <td>{alert.priority ?? '-'}</td>
-                                            <td>{alert.acknowledged_by?.username ?? '-'}</td>
-                                            <td>{alert.closed_by?.username ?? '-'}</td>
-                                            <td>
-                                                <div className="table-actions">
-                                                    <button
-                                                        className="btn-ghost-edit"
-                                                        onClick={() => openCommentModal(alert)}
-                                                        title="Show details"
-                                                    >
-                                                        <Info size={16} />
-                                                    </button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    ))
-                                )}
-                            </tbody>
-                        </table>
-                    </div>
-                )}
-            </div>
+            <ClosedAlertsSection
+                alerts={alerts}
+                showClosedAlerts={showClosedAlerts}
+                toggleClosedAlerts={() => setShowClosedAlerts(!showClosedAlerts)}
+                formatTimestamp={formatTimestamp}
+                onOpenCommentModal={openCommentModal}
+            />
 
             <button 
                 className="btn-add-rule"
@@ -629,711 +465,58 @@ const AlarmsPage = () => {
                 Add Rule
             </button>
 
-            {/* List of rules */}
-            <div className="rules-card">
-                <div className="rules-card-header">
-                    <h3>Rule List</h3>
-                    
-                    <button className="btn-secondary" onClick={fetchRules} disabled={rulesLoading}>
-                        {rulesLoading ? 'Refreshing...' : 'Refresh'}
-                    </button>
-                </div>
-                <div className="rules-table-wrapper">
-                    <table className="rules-table">
-                        <thead>
-                            <tr>
-                                <th>Name</th>
-                                <th>Metric</th>
-                                <th>Operator</th>
-                                <th>Min Threshold</th>
-                                <th>Max Threshold</th>
-                                <th>Priority</th>
-                                <th>Duration (s)</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {rulesLoading ? (
-                                <tr>
-                                    <td colSpan="8" className="table-empty">Loading...</td>
-                                </tr>
-                            ) : rules.length === 0 ? (
-                                <tr>
-                                    <td colSpan="8" className="table-empty">No rules to display</td>
-                                </tr>
-                            ) : (
-                                rules.map(rule => (
-                                    <tr key={rule.id}>
-                                        <td>{rule.name}</td>
-                                        <td>{rule.target_metric}</td>
-                                        <td>{rule.operator}</td>
-                                        <td>{rule.threshold_min ?? '-'}</td>
-                                        <td>{rule.threshold_max ?? '-'}</td>
-                                        <td>{rule.priority}</td>
-                                        <td>{rule.duration_seconds}</td>
-                                        <td>
-                                            <div className="table-actions">
-                                                <button
-                                                    className="btn-ghost-danger"
-                                                    onClick={() => handleDelete(rule.id)}
-                                                    disabled={deletingId === rule.id}
-                                                >
-                                                    {deletingId === rule.id ? 'Deleting...' : <Trash2 size={16} />}
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))
-                            )}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+            <RuleList
+                rules={rules}
+                loading={rulesLoading}
+                onRefresh={fetchRules}
+                onDelete={handleDelete}
+                deletingId={deletingId}
+            />
 
-            {/* Info Box */}
-            <div className="info-box">
-                <Info size={20} />
-                <div>
-                    <h3 className="info-title">Alarm Rules Management</h3>
-                    <p className="info-text">
-                        Create monitoring rules that automatically generate alerts 
-                        when metric values exceed defined thresholds.
-                    </p>
-                </div>
-            </div>
+            <InfoBox />
 
-            {/* Alert Action Modal */}
-            {showAlertActionModal && selectedAlert && (
-                <div className="modal-overlay" onClick={() => setShowAlertActionModal(false)}>
-                    <div className="modal-container" onClick={(e) => e.stopPropagation()}>
-                        <div className="modal-header">
-                            <h2 className="modal-title">
-                                {selectedAlert.status === 'NEW' ? 'Manage Alert' : 'Close Alert'}
-                            </h2>
-                            <button 
-                                className="modal-close"
-                                onClick={() => setShowAlertActionModal(false)}
-                            >
-                                <X size={24} />
-                            </button>
-                        </div>
+            <AlertActionModal
+                show={showAlertActionModal}
+                selectedAlert={selectedAlert}
+                alertActionLoading={alertActionLoading}
+                alertComment={alertComment}
+                setAlertComment={setAlertComment}
+                onAcknowledge={handleAcknowledgeAlert}
+                onCloseAlert={handleCloseAlert}
+                onCloseModal={() => setShowAlertActionModal(false)}
+            />
 
-                        <div className="rule-form">
-                            {/* Alert Info */}
-                            <div className="form-group form-group-full">
-                                <label className="form-label">Alert Rule</label>
-                                <div style={{ padding: '8px 12px', background: 'rgba(255, 255, 255, 0.05)', border: '1px solid var(--border-color)', borderRadius: '6px' }}>
-                                    {selectedAlert.alert_rule?.name || 'No name'}
-                                </div>
-                            </div>
+            <AddRuleModal
+                show={showAddRuleModal}
+                formData={formData}
+                loading={loading}
+                onClose={() => setShowAddRuleModal(false)}
+                onChange={handleInputChange}
+                onSubmit={handleSubmit}
+            />
 
-                            <div className="form-group form-group-full">
-                                <label className="form-label">Status</label>
-                                <div style={{ padding: '8px 12px', background: 'rgba(255, 255, 255, 0.05)', border: '1px solid var(--border-color)', borderRadius: '6px' }}>
-                                    {selectedAlert.status}
-                                </div>
-                            </div>
+            <AddAlertModal
+                show={showAddAlertModal}
+                rules={rules}
+                alertFormData={alertFormData}
+                loading={loading}
+                onClose={() => setShowAddAlertModal(false)}
+                onChange={handleAlertInputChange}
+                onSubmit={handleAlertSubmit}
+            />
 
-                            <div className="form-group form-group-full">
-                                <label className="form-label">Triggering Value</label>
-                                <div style={{ padding: '8px 12px', background: 'rgba(255, 255, 255, 0.05)', border: '1px solid var(--border-color)', borderRadius: '6px' }}>
-                                    {selectedAlert.triggering_value ?? '-'}
-                                </div>
-                            </div>
-
-                            {/* Existing Comment (if any) */}
-                            {selectedAlert.alert_comment?.text && (
-                                <div className="form-group form-group-full">
-                                    <label className="form-label">Existing Comment</label>
-                                    <div style={{ 
-                                        padding: '12px', 
-                                        background: 'rgba(255, 255, 255, 0.05)', 
-                                        border: '1px solid var(--border-color)',
-                                        borderRadius: '6px',
-                                        minHeight: '60px',
-                                        whiteSpace: 'pre-wrap',
-                                        wordWrap: 'break-word',
-                                        opacity: 0.8
-                                    }}>
-                                        {selectedAlert.alert_comment.text}
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* Comment Field */}
-                            <div className="form-group form-group-full">
-                                <label htmlFor="alertComment" className="form-label">
-                                    {selectedAlert.alert_comment?.text ? 'Add New Comment Part' : 'Comment'}
-                                </label>
-                                <textarea
-                                    id="alertComment"
-                                    className="form-input"
-                                    value={alertComment}
-                                    onChange={(e) => setAlertComment(e.target.value)}
-                                    placeholder="Add comment (optional)..."
-                                    rows="4"
-                                    style={{ resize: 'vertical' }}
-                                />
-                            </div>
-
-                            {/* Action Buttons */}
-                            <div className="form-actions" style={{ gap: '12px' }}>
-                                <button
-                                    type="button"
-                                    className="btn-secondary"
-                                    onClick={() => setShowAlertActionModal(false)}
-                                    disabled={alertActionLoading}
-                                >
-                                    Cancel
-                                </button>
-                                
-                                {selectedAlert.status === 'NEW' && (
-                                    <button
-                                        type="button"
-                                        className="btn-primary"
-                                        onClick={handleAcknowledgeAlert}
-                                        disabled={alertActionLoading}
-                                        style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
-                                    >
-                                        <CheckCircle2 size={16} />
-                                        {alertActionLoading ? 'Acknowledging...' : 'Acknowledge'}
-                                    </button>
-                                )}
-                                
-                                <button
-                                    type="button"
-                                    className="btn-ghost-danger"
-                                    onClick={handleCloseAlert}
-                                    disabled={alertActionLoading}
-                                    style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
-                                >
-                                    <XCircle size={16} />
-                                    {alertActionLoading ? 'Closing...' : 'Close'}
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {/* Add Rule Modal */}
-            {showAddRuleModal && (
-                <div className="modal-overlay" onClick={() => setShowAddRuleModal(false)}>
-                    <div className="modal-container" onClick={(e) => e.stopPropagation()}>
-                        <div className="modal-header">
-                            <h2 className="modal-title">Add New Alert Rule</h2>
-                            <button 
-                                className="modal-close"
-                                onClick={() => setShowAddRuleModal(false)}
-                            >
-                                <X size={24} />
-                            </button>
-                        </div>
-
-                        <form onSubmit={handleSubmit} className="rule-form">
-                            <div className="form-grid">
-                                {/* Rule Name */}
-                                <div className="form-group form-group-full">
-                                    <label htmlFor="name" className="form-label">
-                                        Rule Name
-                                        <span className="required">*</span>
-                                    </label>
-                                    <input
-                                        type="text"
-                                        id="name"
-                                        name="name"
-                                        className="form-input"
-                                        value={formData.name}
-                                        onChange={handleInputChange}
-                                        placeholder="e.g. High energy usage"
-                                        required
-                                    />
-                                </div>
-
-                                {/* Target Metric */}
-                                <div className="form-group form-group-full">
-                                    <label htmlFor="target_metric" className="form-label">
-                                        Target Metric
-                                        <span className="required">*</span>
-                                    </label>
-                                    <input
-                                        type="text"
-                                        id="target_metric"
-                                        name="target_metric"
-                                        className="form-input"
-                                        value={formData.target_metric}
-                                        onChange={handleInputChange}
-                                        placeholder="e.g. power_consumption"
-                                        required
-                                    />
-                                    <p className="form-hint">
-                                        Name of the metric to monitor
-                                    </p>
-                                </div>
-
-                                {/* Operator */}
-                                <div className="form-group">
-                                    <label htmlFor="operator" className="form-label">
-                                        Operator
-                                        <span className="required">*</span>
-                                    </label>
-                                    <select
-                                        id="operator"
-                                        name="operator"
-                                        className="form-select"
-                                        value={formData.operator}
-                                        onChange={handleInputChange}
-                                        required
-                                    >
-                                        <option value="GREATER_THAN">Greater than</option>
-                                        <option value="LESS_THAN">Less than</option>
-                                        <option value="EQUALS">Equals</option>
-                                    </select>
-                                </div>
-
-                                {/* Priority */}
-                                <div className="form-group">
-                                    <label htmlFor="priority" className="form-label">
-                                        Priority
-                                        <span className="required">*</span>
-                                    </label>
-                                    <select
-                                        id="priority"
-                                        name="priority"
-                                        className="form-select"
-                                        value={formData.priority}
-                                        onChange={handleInputChange}
-                                        required
-                                    >
-                                        <option value="LOW">Low</option>
-                                        <option value="MEDIUM">Medium</option>
-                                        <option value="HIGH">High</option>
-                                        <option value="CRITICAL">Critical</option>
-                                    </select>
-                                </div>
-
-                                {/* Threshold Min */}
-                                <div className="form-group">
-                                    <label htmlFor="threshold_min" className="form-label">
-                                        Minimum Threshold
-                                    </label>
-                                    <input
-                                        type="number"
-                                        id="threshold_min"
-                                        name="threshold_min"
-                                        className="form-input"
-                                        value={formData.threshold_min}
-                                        onChange={handleInputChange}
-                                        placeholder="0.0"
-                                        step="0.01"
-                                    />
-                                    <p className="form-hint">
-                                        Used for the "less than" or "equals" operators
-                                    </p>
-                                </div>
-
-                                {/* Threshold Max */}
-                                <div className="form-group">
-                                    <label htmlFor="threshold_max" className="form-label">
-                                        Maximum Threshold
-                                    </label>
-                                    <input
-                                        type="number"
-                                        id="threshold_max"
-                                        name="threshold_max"
-                                        className="form-input"
-                                        value={formData.threshold_max}
-                                        onChange={handleInputChange}
-                                        placeholder="100.0"
-                                        step="0.01"
-                                    />
-                                    <p className="form-hint">
-                                        Used for the "greater than" operator
-                                    </p>
-                                </div>
-
-                                {/* Duration */}
-                                <div className="form-group form-group-full">
-                                    <label htmlFor="duration_seconds" className="form-label">
-                                        Duration (seconds)
-                                    </label>
-                                    <input
-                                        type="number"
-                                        id="duration_seconds"
-                                        name="duration_seconds"
-                                        className="form-input"
-                                        value={formData.duration_seconds}
-                                        onChange={handleInputChange}
-                                        placeholder="0"
-                                        min="0"
-                                    />
-                                    <p className="form-hint">
-                                        How long the condition must be met before triggering an alert
-                                    </p>
-                                </div>
-                            </div>
-
-                            {/* Form Actions */}
-                            <div className="form-actions">
-                                <button
-                                    type="button"
-                                    className="btn-secondary"
-                                    onClick={() => setShowAddRuleModal(false)}
-                                    disabled={loading}
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    type="submit"
-                                    className="btn-primary"
-                                    disabled={loading}
-                                >
-                                    {loading ? 'Creating...' : 'Create Rule'}
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            )}
-
-            {/* Add Alert Modal */}
-            {showAddAlertModal && (
-                <div className="modal-overlay" onClick={() => setShowAddAlertModal(false)}>
-                    <div className="modal-container" onClick={(e) => e.stopPropagation()}>
-                        <div className="modal-header">
-                            <h2 className="modal-title">Add New Alert</h2>
-                            <button 
-                                className="modal-close"
-                                onClick={() => setShowAddAlertModal(false)}
-                            >
-                                <X size={24} />
-                            </button>
-                        </div>
-
-                        <form onSubmit={handleAlertSubmit} className="rule-form">
-                            <div className="form-grid">
-                                {/* Alert Rule Selection */}
-                                <div className="form-group form-group-full">
-                                    <label htmlFor="alert_rule_id" className="form-label">
-                                        Alert Rule
-                                        <span className="required">*</span>
-                                    </label>
-                                    <select
-                                        id="alert_rule_id"
-                                        name="alert_rule_id"
-                                        className="form-select"
-                                        value={alertFormData.alert_rule_id}
-                                        onChange={handleAlertInputChange}
-                                        required
-                                    >
-                                        <option value="">Select a rule...</option>
-                                        {rules.map(rule => (
-                                            <option key={rule.id} value={rule.id}>
-                                                {rule.name} ({rule.target_metric})
-                                            </option>
-                                        ))}
-                                    </select>
-                                    <p className="form-hint">
-                                        Select which rule was violated
-                                    </p>
-                                </div>
-
-                                {/* Triggering Value */}
-                                <div className="form-group form-group-full">
-                                    <label htmlFor="triggering_value" className="form-label">
-                                        Triggering Value
-                                        <span className="required">*</span>
-                                    </label>
-                                    <input
-                                        type="number"
-                                        id="triggering_value"
-                                        name="triggering_value"
-                                        className="form-input"
-                                        value={alertFormData.triggering_value}
-                                        onChange={handleAlertInputChange}
-                                        placeholder="0.0"
-                                        step="0.01"
-                                        required
-                                    />
-                                    <p className="form-hint">
-                                        Metric value that triggered the alert
-                                    </p>
-                                </div>
-
-                                {/* Timestamp (optional) */}
-                                <div className="form-group form-group-full">
-                                    <label htmlFor="timestamp" className="form-label">
-                                        Timestamp (optional)
-                                    </label>
-                                    <input
-                                        type="datetime-local"
-                                        id="timestamp"
-                                        name="timestamp"
-                                        className="form-input"
-                                        value={alertFormData.timestamp}
-                                        onChange={handleAlertInputChange}
-                                    />
-                                    <p className="form-hint">
-                                        If empty, the current time will be used
-                                    </p>
-                                </div>
-                            </div>
-
-                            {/* Form Actions */}
-                            <div className="form-actions">
-                                <button
-                                    type="button"
-                                    className="btn-secondary"
-                                    onClick={() => setShowAddAlertModal(false)}
-                                    disabled={loading}
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    type="submit"
-                                    className="btn-primary"
-                                    disabled={loading}
-                                >
-                                    {loading ? 'Creating...' : 'Create Alert'}
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            )}
-
-            {/* Add Alert Modal */}
-            {showAddAlertModal && (
-                <div className="modal-overlay" onClick={() => setShowAddAlertModal(false)}>
-                    <div className="modal-container" onClick={(e) => e.stopPropagation()}>
-                        <div className="modal-header">
-                            <h2 className="modal-title">Add New Alert</h2>
-                            <button 
-                                className="modal-close"
-                                onClick={() => setShowAddAlertModal(false)}
-                            >
-                                <X size={24} />
-                            </button>
-                        </div>
-
-                        <form onSubmit={handleAlertSubmit} className="rule-form">
-                            <div className="form-grid">
-                                {/* Alert Rule Selection */}
-                                <div className="form-group form-group-full">
-                                    <label htmlFor="alert_rule_id" className="form-label">
-                                        Alert Rule
-                                        <span className="required">*</span>
-                                    </label>
-                                    <select
-                                        id="alert_rule_id"
-                                        name="alert_rule_id"
-                                        className="form-select"
-                                        value={alertFormData.alert_rule_id}
-                                        onChange={handleAlertInputChange}
-                                        required
-                                    >
-                                        <option value="">Select a rule...</option>
-                                        {rules.map(rule => (
-                                            <option key={rule.id} value={rule.id}>
-                                                {rule.name} ({rule.target_metric})
-                                            </option>
-                                        ))}
-                                    </select>
-                                    <p className="form-hint">
-                                        Select which rule was violated
-                                    </p>
-                                </div>
-
-                                {/* Triggering Value */}
-                                <div className="form-group form-group-full">
-                                    <label htmlFor="triggering_value" className="form-label">
-                                        Triggering Value
-                                        <span className="required">*</span>
-                                    </label>
-                                    <input
-                                        type="number"
-                                        id="triggering_value"
-                                        name="triggering_value"
-                                        className="form-input"
-                                        value={alertFormData.triggering_value}
-                                        onChange={handleAlertInputChange}
-                                        placeholder="0.0"
-                                        step="0.01"
-                                        required
-                                    />
-                                    <p className="form-hint">
-                                        Metric value that triggered the alert
-                                    </p>
-                                </div>
-
-                                {/* Timestamp (optional) */}
-                                <div className="form-group form-group-full">
-                                    <label htmlFor="timestamp" className="form-label">
-                                        Timestamp (optional)
-                                    </label>
-                                    <input
-                                        type="datetime-local"
-                                        id="timestamp"
-                                        name="timestamp"
-                                        className="form-input"
-                                        value={alertFormData.timestamp}
-                                        onChange={handleAlertInputChange}
-                                    />
-                                    <p className="form-hint">
-                                        If empty, the current time will be used
-                                    </p>
-                                </div>
-
-                                {/* Comment (optional) */}
-                                <div className="form-group form-group-full">
-                                    <label htmlFor="comment" className="form-label">
-                                        Comment (optional)
-                                    </label>
-                                    <textarea
-                                        id="comment"
-                                        name="comment"
-                                        className="form-input"
-                                        value={alertFormData.comment}
-                                        onChange={handleAlertInputChange}
-                                        placeholder="Add a comment about the alert..."
-                                        rows="4"
-                                        style={{ resize: 'vertical' }}
-                                    />
-                                    <p className="form-hint">
-                                        Additional alert details
-                                    </p>
-                                </div>
-                            </div>
-
-                            {/* Form Actions */}
-                            <div className="form-actions">
-                                <button
-                                    type="button"
-                                    className="btn-secondary"
-                                    onClick={() => setShowAddAlertModal(false)}
-                                    disabled={loading}
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    type="submit"
-                                    className="btn-primary"
-                                    disabled={loading}
-                                >
-                                    {loading ? 'Creating...' : 'Create Alert'}
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            )}
-
-            {/* Comment Modal */}
-            {showCommentModal && selectedCommentAlert && (
-                <div className="modal-overlay" onClick={() => setShowCommentModal(false)}>
-                    <div className="modal-container" onClick={(e) => e.stopPropagation()}>
-                        <div className="modal-header">
-                            <h2 className="modal-title">Alert Comment</h2>
-                            <button 
-                                className="modal-close"
-                                onClick={() => setShowCommentModal(false)}
-                            >
-                                <X size={24} />
-                            </button>
-                        </div>
-
-                        <div className="rule-form">
-                            <div className="form-group form-group-full">
-                                <label className="form-label">Alert Rule</label>
-                                <div style={{ padding: '8px 12px', background: 'rgba(255, 255, 255, 0.05)', border: '1px solid var(--border-color)', borderRadius: '6px' }}>
-                                    {selectedCommentAlert.alert_rule?.name || 'No name'}
-                                </div>
-                            </div>
-
-                            <div className="form-group form-group-full">
-                                <label className="form-label">Existing Comment</label>
-                                <div style={{ 
-                                    padding: '12px', 
-                                    background: 'rgba(255, 255, 255, 0.05)', 
-                                    border: '1px solid var(--border-color)',
-                                    borderRadius: '6px',
-                                    minHeight: '100px',
-                                    whiteSpace: 'pre-wrap',
-                                    wordWrap: 'break-word',
-                                    opacity: 0.8
-                                }}>
-                                    {selectedCommentAlert.alert_comment?.text || 'No comment'}
-                                </div>
-                            </div>
-
-                            {isAddingComment && (
-                                <div className="form-group form-group-full">
-                                    <label className="form-label">Add New Comment Part</label>
-                                    <textarea
-                                        className="form-input"
-                                        value={newCommentText}
-                                        onChange={(e) => setNewCommentText(e.target.value)}
-                                        placeholder="Enter a new comment part..."
-                                        rows="6"
-                                        style={{ resize: 'vertical' }}
-                                    />
-                                </div>
-                            )}
-
-                            <div className="form-group form-group-full">
-                                <label className="form-label">Comment Timestamp</label>
-                                <div style={{ padding: '8px 12px', background: 'rgba(255, 255, 255, 0.05)', border: '1px solid var(--border-color)', borderRadius: '6px' }}>
-                                    {formatTimestamp(selectedCommentAlert.alert_comment?.timestamp)}
-                                </div>
-                            </div>
-
-                            <div className="form-actions">
-                                {!isAddingComment ? (
-                                    <>
-                                        <button
-                                            type="button"
-                                            className="btn-secondary"
-                                            onClick={() => setIsAddingComment(true)}
-                                        >
-                                            <Plus size={16} style={{ marginRight: '8px' }} />
-                                            Add Comment
-                                        </button>
-                                        <button
-                                            type="button"
-                                            className="btn-primary"
-                                            onClick={() => setShowCommentModal(false)}
-                                        >
-                                            Close
-                                        </button>
-                                    </>
-                                ) : (
-                                    <>
-                                        <button
-                                            type="button"
-                                            className="btn-secondary"
-                                            onClick={() => {
-                                                setIsAddingComment(false);
-                                                setNewCommentText('');
-                                            }}
-                                            disabled={commentUpdateLoading}
-                                        >
-                                            Cancel
-                                        </button>
-                                        <button
-                                            type="button"
-                                            className="btn-primary"
-                                            onClick={handleAddComment}
-                                            disabled={commentUpdateLoading || !newCommentText.trim()}
-                                        >
-                                            {commentUpdateLoading ? 'Saving...' : 'Save'}
-                                        </button>
-                                    </>
-                                )}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )}
+            <CommentModal
+                show={showCommentModal}
+                selectedCommentAlert={selectedCommentAlert}
+                isAddingComment={isAddingComment}
+                setIsAddingComment={setIsAddingComment}
+                newCommentText={newCommentText}
+                setNewCommentText={setNewCommentText}
+                commentUpdateLoading={commentUpdateLoading}
+                formatTimestamp={formatTimestamp}
+                onAddComment={handleAddComment}
+                onClose={() => setShowCommentModal(false)}
+            />
         </div>
     );
 };
