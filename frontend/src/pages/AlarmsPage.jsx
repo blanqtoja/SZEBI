@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Bell, Plus, AlertTriangle, Info, CheckCircle2, X, Trash2, SquarePen, XCircle, NotebookTabs} from 'lucide-react';
+import { Bell, Plus, AlertTriangle, Info, CheckCircle2, X, Trash2, SquarePen, XCircle, NotebookTabs, ChevronDown, ChevronUp} from 'lucide-react';
 
 const API_BASE_URL = 'http://localhost:8000';
 
@@ -51,6 +51,7 @@ const AlarmsPage = () => {
     const [isAddingComment, setIsAddingComment] = useState(false);
     const [newCommentText, setNewCommentText] = useState('');
     const [commentUpdateLoading, setCommentUpdateLoading] = useState(false);
+    const [showClosedAlerts, setShowClosedAlerts] = useState(false);
     const [alertFormData, setAlertFormData] = useState({
         alert_rule_id: '',
         triggering_value: '',
@@ -457,7 +458,7 @@ const AlarmsPage = () => {
             </button>
             <div className="rules-card">
                 <div className="rules-card-header">
-                    <h3>Lista alarmów</h3>
+                    <h3>Aktywne alarmy</h3>
                     <button className="btn-secondary" onClick={fetchAlertsData} disabled={alertsLoading}>
                         {alertsLoading ? 'Odświeżanie...' : 'Odśwież'}
                     </button>
@@ -483,14 +484,14 @@ const AlarmsPage = () => {
                         <tbody>
                             {alertsLoading ? (
                                 <tr>
-                                    <td colSpan="8" className="table-empty">Ładowanie...</td>
+                                    <td colSpan="11" className="table-empty">Ładowanie...</td>
                                 </tr>
-                            ) : alerts.length === 0 ? (
+                            ) : alerts.filter(a => a.status !== 'CLOSED').length === 0 ? (
                                 <tr>
-                                    <td colSpan="8" className="table-empty">Brak alarmów do wyświetlenia</td>
+                                    <td colSpan="11" className="table-empty">Brak aktywnych alarmów</td>
                                 </tr>
                             ) : (
-                                alerts.map(alert => (
+                                alerts.filter(alert => alert.status !== 'CLOSED').map(alert => (
                                     <tr key={alert.id}>
                                         {console.log(alert)}
                                         <td>{alert.alert_rule?.name ?? '-'}</td>
@@ -533,6 +534,85 @@ const AlarmsPage = () => {
                         </tbody>
                     </table>
                 </div>
+            </div>
+
+            {/* Closed Alerts Section */}
+            <div className="rules-card">
+                <div 
+                    className="rules-card-header" 
+                    style={{ cursor: 'pointer' }}
+                    onClick={() => setShowClosedAlerts(!showClosedAlerts)}
+                >
+                    <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        Zamknięte alarmy ({alerts.filter(a => a.status === 'CLOSED').length})
+                        {showClosedAlerts ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+                    </h3>
+                </div>
+                {showClosedAlerts && (
+                    <div className="rules-table-wrapper">
+                        <table className="rules-table">
+                            <thead>
+                                <tr>
+                                    <th>Zasada</th>
+                                    <th>Komentarz</th>
+                                    <th>triggering value</th>
+                                    <th>generated at</th>
+                                    <th>ack at</th>
+                                    <th>closed at</th>
+                                    <th>status</th>
+                                    <th>priority</th>
+                                    <th>ack by</th>
+                                    <th>closed by</th>
+                                    <th>Akcje</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {alerts.filter(a => a.status === 'CLOSED').length === 0 ? (
+                                    <tr>
+                                        <td colSpan="11" className="table-empty">Brak zamkniętych alarmów</td>
+                                    </tr>
+                                ) : (
+                                    alerts.filter(alert => alert.status === 'CLOSED').map(alert => (
+                                        <tr key={alert.id}>
+                                            <td>{alert.alert_rule?.name ?? '-'}</td>
+                                            <td>
+                                                {alert.alert_comment ? (
+                                                    <button
+                                                        className="btn-ghost-edit"
+                                                        onClick={() => openCommentModal(alert)}
+                                                    >
+                                                        <NotebookTabs size={16}/>
+                                                    </button>
+                                                ) : (
+                                                    '-'
+                                                )}
+                                            </td>
+                                            <td>{alert.triggering_value ?? '-'}</td>
+                                            <td>{formatTimestamp(alert.timestamp_generated)}</td>
+                                            <td>{formatTimestamp(alert.timestamp_acknowledged)}</td>
+                                            <td>{formatTimestamp(alert.timestamp_closed)}</td>
+                                            <td>{alert.status ?? '-'}</td>
+                                            <td>{alert.priority ?? '-'}</td>
+                                            <td>{alert.acknowledged_by?.username ?? '-'}</td>
+                                            <td>{alert.closed_by?.username ?? '-'}</td>
+                                            <td>
+                                                <div className="table-actions">
+                                                    <button
+                                                        className="btn-ghost-edit"
+                                                        onClick={() => openCommentModal(alert)}
+                                                        title="Pokaż szczegóły"
+                                                    >
+                                                        <Info size={16} />
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
+                )}
             </div>
 
             <button 
