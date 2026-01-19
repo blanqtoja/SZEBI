@@ -10,7 +10,7 @@ class OutsideWeather(Weather):
 
         self.sunlight: float = 0.0
         self.brightness: float = 0.0
-        self.cloudiness: float = 0.3
+        self.cloud_cover: float = 30.0
 
         self.wind: float = 2.0
         self.temperature: float = 15.0
@@ -30,14 +30,14 @@ class OutsideWeather(Weather):
         sun = math.sin(day_phase)
 
         self.sunlight = max(0.0, min(1.0, sun))
-        self.brightness = self.sunlight * (1 - self.cloudiness * 0.6)
+        self.brightness = self.sunlight * (1 - self.cloud_cover / 100.0 * 0.6)
 
-    def update_cloudiness(self, millis: int) -> None:
-        self.cloudiness += (random.uniform(-0.02, 0.02) / (60 * 1000)) * millis
-        self.cloudiness = max(0.0, min(1.0, self.cloudiness))
+    def update_cloud_cover(self, millis: int) -> None:
+        self.cloud_cover += (random.uniform(-2.0, 2.0) / (60 * 1000)) * millis
+        self.cloud_cover = max(0.0, min(100.0, self.cloud_cover))
 
     def update_rainfall(self, millis: int) -> None:
-        if self.cloudiness > 0.6:
+        if self.cloud_cover > 60.0:
             if random.random() < 0.1:
                 self.rainfall = random.uniform(0.5, 5.0)
         else:

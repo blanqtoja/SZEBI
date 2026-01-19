@@ -1,5 +1,6 @@
 from django.db import models
 from django.utils import timezone
+from django.core.validators import MinValueValidator, MaxValueValidator
 import datetime
 
 class SimulationState(models.Model):
@@ -56,7 +57,10 @@ class WeatherData(models.Model):
     """Historia i prognoza pogody."""
     timestamp = models.DateTimeField()
     temperature = models.FloatField()
-    cloud_cover = models.FloatField(help_text="0-100%")
+    cloud_cover = models.FloatField(
+        help_text="0-100%",
+        validators=[MinValueValidator(0.0), MaxValueValidator(100.0)]
+    )
     wind_speed = models.FloatField(default=0.0)
 
     class Meta:
