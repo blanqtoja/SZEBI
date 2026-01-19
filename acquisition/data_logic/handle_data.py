@@ -25,14 +25,6 @@ class HandleData:
                                 topic=topic, raw_message=raw_message)
                 return None
 
-            # # Parsowanie danych
-            # parts = topic.split("/")
-            # if len(parts) < 4:
-            #     return None
-            #
-            # env_uuid = parts[1]
-            # metric_name = parts[3]
-
             # --- obsługa różnych topiców ---
             if topic.startswith("szebi/status"):
                 # dla statusu logujemy konsumpcję i ładowanie
@@ -127,27 +119,38 @@ class HandleData:
         # --- Parsowanie lokalizacji ---
         floor, room, description = self._parse_location_from_env(env_name)
 
-        location, _ = Location.objects.get_or_create(
+        # --- Location ---
+        location = Location.objects.filter(
             floor=floor,
-            room=str(room),
-            defaults={'description': description}
-        )
+            room__iexact=str(room)  # ignorujemy wielkość liter
+        ).first()
+        if not location:
+            location = Location.objects.create(
+                floor=floor,
+                room=str(room),
+                description=description
+            )
 
-        # --- Typ sensora ---
-        sensor_type, _ = SensorType.objects.get_or_create(
-            name__iexact=param_name,
-            defaults={'name': param_name, 'default_unit': unit}
-        )
+        # --- Typ sensora (SensorType) ---
+        sensor_type = SensorType.objects.filter(name__iexact=param_name).first()
+        if not sensor_type:
+            sensor_type = SensorType.objects.create(
+                name=param_name,
+                default_unit=unit
+            )
 
         # --- Sensor ---
-        sensor, _ = Sensor.objects.get_or_create(
+        sensor = Sensor.objects.filter(
             location=location,
-            type=sensor_type,
-            defaults={
-                'name': f"{param_name} @ floor {floor} room {room}",
-                'status': 'ACTIVE'
-            }
-        )
+            type=sensor_type
+        ).first()
+        if not sensor:
+            sensor = Sensor.objects.create(
+                location=location,
+                type=sensor_type,
+                name=f"{param_name} @ floor {floor} room {room}",
+                status="ACTIVE"
+            )
 
         return sensor
 

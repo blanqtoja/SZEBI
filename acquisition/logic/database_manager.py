@@ -233,6 +233,12 @@ class DatabaseManager:
             queryset = queryset.filter(timestamp__lte=end_time)
         return list(queryset.order_by('timestamp'))
 
+    def get_all_rooms(self) -> List[str]:
+        return list(Sensor.objects.values_list('location__room', flat=True).distinct())
+
+    def get_all_metrics(self) -> List[str]:
+        return list(Sensor.objects.values_list('type__name', flat=True).distinct())
+
     def shutdown(self):
         self._measurement_queue.put(None)
         self._worker_thread.join()
