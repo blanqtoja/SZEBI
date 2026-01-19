@@ -126,8 +126,6 @@ class MonitoringService:
                     timestamp=timestamp,
                     details=details,
                 )
-                if alert:
-                    NotificationService.send_alert_notification(alert)
 
     @staticmethod
     def evaluate_rules(metric_name, value):

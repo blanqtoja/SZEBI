@@ -7,11 +7,14 @@ import logging
 logger = logging.getLogger(__name__)
 
 # na potrzeby tworzenia w panelu admina
+
+
 @receiver(post_save, sender=Alert)
 def alert_created_signal(sender, instance, created, **kwargs):
     """Signal wysyłający powiadomienia gdy alert zostanie utworzony"""
     if created and instance.status == AlertStatus.NEW:
-        logger.info(f"Alert {instance.id} został utworzony, wysyłam powiadomienia")
-        
+        logger.info(
+            f"Alert {instance.id} został utworzony, wysyłam powiadomienia")
+
         # Wyślij powiadomienia
         NotificationService.send_alert_notification(instance)
