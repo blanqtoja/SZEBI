@@ -38,7 +38,6 @@ class NotificationStatus(models.TextChoices):
 
 class ChannelTypes(models.TextChoices):
     EMAIL = 'EMAIL', 'Email'
-    WEBPUSH = 'WEBPUSH', 'WebPush'
 
 
 class RuleOperator(models.TextChoices):

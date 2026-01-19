@@ -173,7 +173,6 @@ class NotificationService:
             if NotificationService._should_notify_user(user, alert):
                 # todo: może wydajniej by było zbierać adresy email i potem wysłać jednego maila do wszystkich
                 NotificationService._send_email(user, alert)
-                NotificationService._send_webpush(user, alert)
 
     @staticmethod
     def get_recipients(alert):
@@ -252,25 +251,6 @@ class NotificationService:
                 user, alert, ChannelTypes.EMAIL, NotificationStatus.FAILED, error_msg
             )
             logger.error(f"Błąd wysyłania emaila: {error_msg}")
-
-    @staticmethod
-    def _send_webpush(user, alert):
-        """Wyślij powiadomienie WebPush"""
-        try:
-            # todo: dodac biblioteke do webpush
-            # Implementacja WebPush (wymaga dodatkowej biblioteki)
-            # Na potrzeby przykładu tylko logowanie
-            logger.info(f"Wysłano WebPush do {user.username}")
-
-            NotificationService.log_notification(
-                user, alert, ChannelTypes.WEBPUSH, NotificationStatus.SENT
-            )
-        except Exception as e:
-            error_msg = str(e)
-            NotificationService.log_notification(
-                user, alert, ChannelTypes.WEBPUSH, NotificationStatus.FAILED, error_msg
-            )
-            logger.error(f"Błąd wysyłania WebPush: {error_msg}")
 
     @staticmethod
     def _should_notify_user(user, alert):
