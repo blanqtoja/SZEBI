@@ -4,8 +4,8 @@ import Layout from './components/Layout';
 import ProtectedRoute from './components/ProtectedRoute';
 import Home from './pages/Home';
 import LoginPage from './pages/LoginPage';
+import AcquisitionPage from './pages/AcquisitionPage';
 
-// Definicje ról zgodne z core/models.py
 const ROLES = {
   ADMIN: 'building_admin',
   WORKER: 'worker',
@@ -35,7 +35,7 @@ function App() {
           </Route>
 
           <Route element={<ProtectedRoute user={user} allowedRoles={[ROLES.ADMIN, ROLES.MAINTENANCE]} />}>
-            <Route path="acquisition" element={<div className="p-8 text-center text-gray-400">Moduł Akwizycji Danych</div>} />
+            <Route path="acquisition" element={<AcquisitionPage />} />
             <Route path="analysis" element={<div className="p-8 text-center text-gray-400">Moduł Analizy i Raportowania</div>} />
             <Route path="forecasting" element={<div className="p-8 text-center text-gray-400">Moduł Prognozowania</div>} />
             <Route path="alarms" element={<div className="p-8 text-center text-gray-400">Moduł Alarmów i Utrzymania</div>} />

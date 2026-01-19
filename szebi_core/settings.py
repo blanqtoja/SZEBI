@@ -21,7 +21,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY
 SECRET_KEY = config('SECRET_KEY', default='unsafe-local-secret')
 DEBUG = config('DEBUG', default='True', cast=bool)
-ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost', cast=Csv())
+ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,web', cast=Csv())
 
 
 # Application definition
