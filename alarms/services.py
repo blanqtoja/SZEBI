@@ -127,18 +127,6 @@ class MonitoringService:
                     details=details,
                 )
 
-    @staticmethod
-    def evaluate_rules(metric_name, value):
-        """Oceń reguły dla danej metryki"""
-        rules = AlertRule.objects.filter(target_metric=metric_name)
-        triggered_rules = []
-
-        for rule in rules:
-            if rule.check_condition(value):
-                triggered_rules.append(rule)
-
-        return triggered_rules
-
     # todo: czy timestamp dodac jako timestamp_generated?
     @staticmethod
     def create_alert(rule, metric_name, value, timestamp, details=None, user=None):
@@ -165,18 +153,6 @@ class MonitoringService:
         except Exception as e:
             logger.error(f"Błąd tworzenia alarmu: {e}")
             return None
-
-    # todo: dead code? prawdopodobnie nie jest potrzebna, save() wystarcza
-    @staticmethod
-    def save_alert(alert_id, user_id):
-        """Zapisz alarm (historyczny zapis)"""
-        try:
-            alert = Alert.objects.get(id=alert_id)
-            logger.info(f"Zapisano alarm {alert_id}")
-            return True
-        except Alert.DoesNotExist:
-            logger.error(f"Alarm {alert_id} nie istnieje")
-            return False
 
 
 class NotificationService:
