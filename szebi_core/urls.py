@@ -65,4 +65,7 @@ urlpatterns = [
 
     # analysis module
     path("analysis/", include("analysis.urls")),
+
+    # acquisition
+    path('acquisition/', include('acquisition.urls')),
 ]
