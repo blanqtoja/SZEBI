@@ -10,7 +10,7 @@ class InsideWeather(Weather):
 
         self.sunlight: float = 0.0
         self.brightness: float = 0.0
-        self.cloudiness: float = 1
+        self.cloud_cover: float = 100.0
 
         self.wind: float = 0.0
         self.temperature: float = 22.0
@@ -31,10 +31,10 @@ class InsideWeather(Weather):
         sun = math.sin(day_phase)
 
         self.sunlight = max(0.0, min(1.0, sun))
-        self.brightness = self.sunlight * (1 - self.cloudiness * 0.6) * 0.5 * 25000
+        self.brightness = self.sunlight * (1 - self.cloud_cover / 100.0 * 0.6) * 0.5 * 25000
         self.brightness += self.curr_lighting_power
 
-    def update_cloudiness(self, millis: int) -> None:
+    def update_cloud_cover(self, millis: int) -> None:
         pass
 
     def update_rainfall(self, millis: int) -> None:
